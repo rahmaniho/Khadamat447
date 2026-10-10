@@ -5,6 +5,7 @@ import { Icon } from "@/components/icons";
 import { CopyButton } from "@/components/copy-button";
 import { ButtonLink } from "@/components/ui";
 import { LAST_TRACKING_COOKIE } from "@/lib/request-cookie";
+import { IS_STATIC } from "@/lib/static-data";
 
 export const metadata: Metadata = {
   title: "ثبت درخواست انجام شد",
@@ -12,8 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default async function RequestSuccessPage() {
-  const store = await cookies();
-  const code = store.get(LAST_TRACKING_COOKIE)?.value || "";
+  // در حالت static، cookies() در دسترس نیست؛ کد پیگیری نمی‌تواند نمایش داده شود
+  const code = IS_STATIC ? "" : (await cookies()).get(LAST_TRACKING_COOKIE)?.value || "";
 
   return (
     <section className="mx-auto max-w-2xl px-4 py-16">

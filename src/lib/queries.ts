@@ -2,6 +2,29 @@
 import { all, get, run, nowIso, asBool, asJson } from "@/lib/db";
 import { newId } from "@/lib/utils";
 import { REQUEST_STATUS_KEYS, type RequestStatus } from "@/lib/constants";
+import {
+  IS_STATIC,
+  staticGetActiveServices,
+  staticGetServiceBySlug,
+  staticGetServiceFields,
+  staticGetPublishedFaqs,
+  staticGetPublishedArticles,
+  staticGetArticleBySlug,
+  staticGetArticleCategories,
+  type StaticService,
+  type StaticField,
+  type StaticFaq,
+  type StaticArticle,
+} from "@/lib/static-data";
+
+/* -------------------------------------------------------------------------- *
+ * حالت Static Export
+ * --------------------------------------------------------------------------
+ * در حالت static (GitHub Pages) تمام توابع فقط‌خواندنی عمومی مستقیماً از
+ * داده‌های seed داخل حافظه پاسخ می‌دهند و به پایگاه داده متصل نمی‌شوند.
+ * توابع نوشتنی فقط در حالت عادی در دسترس هستند؛ صفحاتی که به آن‌ها وابسته‌اند
+ * در حالت static با پیام «نیازمند سرور» نمایش داده می‌شوند.
+ * -------------------------------------------------------------------------- */
 
 /* ------------------------------ خدمات ------------------------------ */
 
@@ -44,6 +67,7 @@ function mapService(row: Record<string, unknown>): Service {
 }
 
 export async function getActiveServices(): Promise<Service[]> {
+  if (IS_STATIC) return staticGetActiveServices() as unknown as Service[];
   const rows = await all(`${SERVICE_SELECT} WHERE active = 1 ORDER BY sort_order ASC, title ASC`);
   return rows.map(mapService);
 }
@@ -54,6 +78,7 @@ export async function getFeaturedServices(): Promise<Service[]> {
 }
 
 export async function getServiceBySlug(slug: string): Promise<Service | null> {
+  if (IS_STATIC) return staticGetServiceBySlug(slug) as unknown as Service | null;
   const row = await get(`${SERVICE_SELECT} WHERE slug = ? AND active = 1`, [slug]);
   return row ? mapService(row) : null;
 }
@@ -83,6 +108,7 @@ export interface ServiceField {
 }
 
 export async function getServiceFields(serviceId: string): Promise<ServiceField[]> {
+  if (IS_STATIC) return staticGetServiceFields(serviceId) as unknown as ServiceField[];
   const rows = await all(
     "SELECT * FROM service_fields WHERE service_id = ? AND active = 1 ORDER BY sort_order ASC",
     [serviceId],
@@ -115,6 +141,7 @@ export interface Faq {
 }
 
 export async function getPublishedFaqs(serviceSlug?: string): Promise<Faq[]> {
+  if (IS_STATIC) return staticGetPublishedFaqs(serviceSlug) as unknown as Faq[];
   if (serviceSlug) {
     const rows = await all(
       `SELECT f.id, s.slug AS service_slug, f.question, f.answer_md, f.sort_order, f.published, f.updated_at
@@ -175,6 +202,7 @@ function mapArticle(row: Record<string, unknown>): Article {
 }
 
 export async function getPublishedArticles(category?: string, q?: string): Promise<Article[]> {
+  if (IS_STATIC) return staticGetPublishedArticles(category, q) as unknown as Article[];
   const where: string[] = ["status = 'published'"];
   const params: unknown[] = [];
   if (category) {
@@ -190,6 +218,7 @@ export async function getPublishedArticles(category?: string, q?: string): Promi
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
+  if (IS_STATIC) return staticGetArticleBySlug(slug) as unknown as Article | null;
   const row = await get(`${ARTICLE_SELECT} WHERE slug = ?`, [slug]);
   return row ? mapArticle(row) : null;
 }
@@ -200,6 +229,7 @@ export async function getArticlesForAdmin(): Promise<Article[]> {
 }
 
 export async function getArticleCategories(): Promise<string[]> {
+  if (IS_STATIC) return staticGetArticleCategories();
   const rows = await all<{ category: string }>(
     "SELECT DISTINCT category FROM articles WHERE status = 'published' AND category <> '' ORDER BY category ASC",
   );
@@ -216,6 +246,7 @@ export interface Announcement {
 }
 
 export async function getActiveAnnouncements(): Promise<Announcement[]> {
+  if (IS_STATIC) return [];
   const now = nowIso();
   const rows = await all(
     `SELECT id, title, body_md, kind FROM announcements
@@ -430,6 +461,22 @@ export async function searchContent(q: string): Promise<{
   articles: Array<{ slug: string; title: string; excerpt: string }>;
   faqs: Array<{ id: string; question: string }>;
 }> {
+  if (IS_STATIC) {
+    const needle = q.toLowerCase();
+    const services = staticGetActiveServices()
+      .filter((s) => s.title.toLowerCase().includes(needle) || s.summary.toLowerCase().includes(needle) || s.intro_md.toLowerCase().includes(needle))
+      .slice(0, 8)
+      .map((s) => ({ slug: s.slug, title: s.title, summary: s.summary }));
+    const articles = staticGetPublishedArticles()
+      .filter((a) => a.title.toLowerCase().includes(needle) || a.excerpt.toLowerCase().includes(needle) || a.body_md.toLowerCase().includes(needle))
+      .slice(0, 8)
+      .map((a) => ({ slug: a.slug, title: a.title, excerpt: a.excerpt }));
+    const faqs = staticGetPublishedFaqs()
+      .filter((f) => f.question.toLowerCase().includes(needle) || f.answer_md.toLowerCase().includes(needle))
+      .slice(0, 8)
+      .map((f) => ({ id: f.id, question: f.question }));
+    return { services, articles, faqs };
+  }
   const like = `%${q}%`;
   const services = await all<{ slug: string; title: string; summary: string }>(
     "SELECT slug, title, summary FROM services WHERE active = 1 AND (title LIKE ? OR summary LIKE ? OR intro_md LIKE ?) ORDER BY sort_order ASC LIMIT 8",

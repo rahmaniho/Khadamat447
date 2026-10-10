@@ -29,7 +29,7 @@ type ServiceSeed = {
   max_attachments: number;
 };
 
-const SERVICES: ServiceSeed[] = [
+export const SERVICES_SEED: ServiceSeed[] = [
   {
     slug: "health-card",
     title: "خدمات ثبت و صدور کارت بهداشت",
@@ -206,7 +206,7 @@ type FieldSeed = {
   required?: number;
 };
 
-const FIELDS: FieldSeed[] = [
+export const FIELDS_SEED: FieldSeed[] = [
   // کارت بهداشت
   {
     service: "health-card",
@@ -400,7 +400,7 @@ const FIELDS: FieldSeed[] = [
   },
 ];
 
-const FAQS: Array<{ question: string; answer: string; service?: string }> = [
+export const FAQS_SEED: Array<{ question: string; answer: string; service?: string }> = [
   {
     question: "چگونه درخواست کارت بهداشت ثبت کنم؟",
     answer:
@@ -449,7 +449,7 @@ const FAQS: Array<{ question: string; answer: string; service?: string }> = [
   },
 ];
 
-const ARTICLES: Array<{
+export const ARTICLES_SEED: Array<{
   slug: string;
   title: string;
   excerpt: string;
@@ -646,7 +646,7 @@ export async function seedDatabase(): Promise<{
 }> {
   const created = { services: 0, fields: 0, faqs: 0, articles: 0 };
 
-  for (const s of SERVICES) {
+  for (const s of SERVICES_SEED) {
     const existing = await get<{ id: string }>("SELECT id FROM services WHERE slug = ?", [s.slug]);
     if (!existing) {
       const id = newIdSafe();
@@ -665,7 +665,7 @@ export async function seedDatabase(): Promise<{
     }
   }
 
-  for (const f of FIELDS) {
+  for (const f of FIELDS_SEED) {
     const service = await get<{ id: string }>("SELECT id FROM services WHERE slug = ?", [f.service]);
     if (!service) continue;
     const exists = await get<{ id: string }>(
@@ -673,7 +673,7 @@ export async function seedDatabase(): Promise<{
       [service.id, f.field_key],
     );
     if (exists) continue;
-    const order = FIELDS.filter((x) => x.service === f.service).findIndex((x) => x.field_key === f.field_key) + 1;
+    const order = FIELDS_SEED.filter((x) => x.service === f.service).findIndex((x) => x.field_key === f.field_key) + 1;
     await run(
       `INSERT INTO service_fields (id, service_id, field_key, label, type, options_json, placeholder, help_text, required, sort_order, active)
        VALUES (?,?,?,?,?,?,?,?,?,?,1)`,
@@ -688,7 +688,7 @@ export async function seedDatabase(): Promise<{
   const faqCount = await get<{ c: number }>("SELECT COUNT(*) AS c FROM faqs");
   if (!faqCount || Number(faqCount.c) === 0) {
     let order = 1;
-    for (const f of FAQS) {
+    for (const f of FAQS_SEED) {
       let serviceId: string | null = null;
       if (f.service) {
         const svc = await get<{ id: string }>("SELECT id FROM services WHERE slug = ?", [f.service]);
@@ -704,7 +704,7 @@ export async function seedDatabase(): Promise<{
 
   // مقاله‌ها بر اساس slug درج می‌شوند تا پایگاه‌داده‌های قدیمی هم مقاله‌های جدید را دریافت کنند.
   // مقاله‌ای که از قبل وجود دارد دست‌نخورده می‌ماند.
-  for (const a of ARTICLES) {
+  for (const a of ARTICLES_SEED) {
     const exists = await get<{ id: string }>("SELECT id FROM articles WHERE slug = ?", [a.slug]);
     if (exists) continue;
     await run(

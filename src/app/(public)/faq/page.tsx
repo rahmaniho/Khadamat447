@@ -13,7 +13,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function FaqPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const { q = "" } = await searchParams;
+  let q = "";
+  try {
+    const sp = await searchParams;
+    q = sp?.q || "";
+  } catch {
+    /* ignore: build-time */
+  }
   await loadSite();
   const all = await getPublishedFaqs();
   const needle = q.trim().toLowerCase();

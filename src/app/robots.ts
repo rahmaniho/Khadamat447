@@ -1,11 +1,14 @@
 import type { MetadataRoute } from "next";
 import { loadSite } from "@/lib/site";
+import { IS_STATIC } from "@/lib/static-data";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
-export default async function robots(): Promise<MetadataRoute.Robots> {
-  const site = await loadSite();
-  const base = site.siteUrl;
+export default function robots(): MetadataRoute.Robots {
+  const baseFromEnv = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const base = IS_STATIC
+    ? (baseFromEnv || "https://rahmaniho.github.io/Khadamat447")
+    : baseFromEnv;
   return {
     rules: [
       {

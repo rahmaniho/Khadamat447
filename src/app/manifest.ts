@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+export const dynamic = "force-static";
+
 /** مانیفست وب‌اپ: نام و نماد برند برای افزودن سایت به صفحه اصلی گوشی */
 export default function manifest(): MetadataRoute.Manifest {
   return {

@@ -6,11 +6,18 @@ import { rateLimit } from "@/lib/ratelimit";
 import { clientIp, ipHash } from "@/lib/requests";
 import { logSecurity } from "@/lib/logger";
 import { ensureBootstrap } from "@/lib/bootstrap";
+import { IS_STATIC } from "@/lib/static-data";
 
 export type TrackState = { ok: boolean; message?: string; result?: PublicRequestView | null } | null;
 
 /** پیگیری درخواست: فقط با کد پیگیری و چهار رقم آخر شماره تماس؛ اطلاعات شخصی هرگز نمایش داده نمی‌شود */
 export async function trackRequestAction(_prev: TrackState, formData: FormData): Promise<TrackState> {
+  if (IS_STATIC) {
+    return {
+      ok: false,
+      message: "پیگیری درخواست فقط در نسخه‌ی کامل سایت فعال است. لطفاً از طریق شماره‌های دفتر پیگیری کنید.",
+    };
+  }
   await ensureBootstrap();
   const ip = await clientIp();
   const rl = rateLimit(`track:${ip}`, 20, 10 * 60 * 1000);

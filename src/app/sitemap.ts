@@ -1,14 +1,20 @@
 import type { MetadataRoute } from "next";
 import { loadSite } from "@/lib/site";
 import { getActiveServices, getPublishedArticles } from "@/lib/queries";
+import { IS_STATIC } from "@/lib/static-data";
 
-export const dynamic = "force-dynamic";
+// در حالت dev/server، sitemap در هر درخواست تولید می‌شود.
+// در حالت static export نیز force-static سازگار است.
+export const dynamic = "force-static";
 
-/** sitemap پویا: فقط صفحات عمومی؛ پنل مدیریت، پیگیری، جست‌وجو و صفحات فرم خصوصی حذف شده‌اند */
+/** sitemap: فقط صفحات عمومی؛ پنل مدیریت، پیگیری، جست‌وجو و صفحات فرم خصوصی حذف شده‌اند */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = await loadSite();
-  const base = site.siteUrl;
-  if (!base) return [];
+  // در حالت static از basePath استفاده می‌کنیم تا URL ها صحیح باشند
+  const baseFromEnv = process.env.NEXT_PUBLIC_SITE_URL || site.siteUrl;
+  const base = IS_STATIC
+    ? (baseFromEnv || "https://rahmaniho.github.io/Khadamat447")
+    : baseFromEnv || site.siteUrl;
   const [services, articles] = await Promise.all([getActiveServices(), getPublishedArticles()]);
   const now = new Date();
   const staticPages = ["/", "/services", "/request", "/articles", "/faq", "/about", "/contact", "/guide", "/privacy", "/terms"];

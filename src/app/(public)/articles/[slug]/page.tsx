@@ -17,6 +17,12 @@ function coverOf(a: Article): string | undefined {
   return a.cover_path || undefined;
 }
 
+/** لیست اسلاگ‌ها برای ساخت صفحات static در build-time (GitHub Pages) */
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+  const articles = await getPublishedArticles();
+  return articles.map((a) => ({ slug: a.slug }));
+}
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const site = await loadSite();

@@ -19,12 +19,22 @@ npm run dev          # http://localhost:3000
 ```
 جزئیات: [docs/INSTALL.md](docs/INSTALL.md)
 
+## خروجی استاتیک (GitHub Pages)
+```bash
+bash scripts/build-static.sh   # خروجی در out/
+```
+سایت به‌صورت HTML/CSS/JS ایستا در `https://<user>.github.io/Khadamat447/`
+منتشر می‌شود. صفحات داینامیک (پنل مدیریت، ثبت درخواست، پیگیری، QR) با
+پیام «نیازمند سرور» نمایش داده می‌شوند.
+جزئیات: [docs/STATIC_EXPORT.md](docs/STATIC_EXPORT.md)
+
 ## مستندات
 | فایل | محتوا |
 |---|---|
 | [docs/INSTALL.md](docs/INSTALL.md) | نصب، اجرا، اولین ورود، آزمون‌ها، پشتیبان |
 | [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | تنظیمات مرکزی، متغیرهای محیطی، نقش‌ها، افزودن خدمت |
 | [docs/DEPLOY.md](docs/DEPLOY.md) | میزبانی، PostgreSQL، ایمیل، دامنه، سئو پس از استقرار، بازیابی |
+| [docs/STATIC_EXPORT.md](docs/STATIC_EXPORT.md) | خروجی استاتیک برای GitHub Pages (محدودیت‌ها، ساخت، استقرار) |
 | [docs/SECURITY.md](docs/SECURITY.md) | پیاده‌سازی امنیتی و کارهای باقی‌مانده |
 | [docs/FEATURES.md](docs/FEATURES.md) | وضعیت هر قابلیت در برابر مشخصات و **اطلاعات لازم از دفتر** |
 | [docs/TEST_REPORT.md](docs/TEST_REPORT.md) | نتایج آزمون‌های واحد و سرتاسری، باگ‌های رفع‌شده، موارد آزموده‌نشده |
