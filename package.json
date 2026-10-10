@@ -1,0 +1,42 @@
+{
+  "name": "khadamat447",
+  "version": "1.0.0",
+  "private": true,
+  "description": "سامانه خدمات آنلاین دفتر خدمات سلامت ۴۷۷ قزوین",
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0 -p 3000",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0 -p 3000",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/unit.test.ts",
+    "test:e2e": "node tests/e2e/e2e.mjs",
+    "admin:create-owner": "tsx scripts/create-owner.ts",
+    "db:backup": "node scripts/backup-db.mjs"
+  },
+  "dependencies": {
+    "next": "16.4.0",
+    "nodemailer": "10.1.0",
+    "pg": "8.23.1",
+    "qrcode": "1.5.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "22.20.5",
+    "@types/nodemailer": "7.0.4",
+    "@types/pg": "8.15.6",
+    "@types/qrcode": "1.5.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "puppeteer-core": "^24.43.1",
+    "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "5.9.3",
+    "vazirmatn": "33.0.3"
+  },
+  "engines": {
+    "node": ">=22.6.0"
+  }
+}
