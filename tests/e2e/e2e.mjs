@@ -67,7 +67,8 @@ try {
   check("صفحه اصلی: تیتر اصلی نمایش داده می‌شود", home.includes("خدمات سلامت و بهداشت، ساده‌تر و سریع‌تر"));
   check("صفحه اصلی: چهار خدمت اصلی نمایش داده می‌شود", ["خدمات ثبت و صدور کارت بهداشت", "آموزشگاه بهداشت اصناف", "صدور صلاحیت بهداشت", "قراردادهای ممیزی"].every((t) => home.includes(t)));
   check("صفحه اصلی: توضیح عدم تأیید نهایی حضور دارد", home.includes("ثبت درخواست در این سامانه به معنی تأیید نهایی"));
-  check("صفحه اصلی: ساعات کاری جعلی نمایش داده نمی‌شود", !home.includes("۰۸:۰۰ تا ۱۶:۰۰"));
+  check("صفحه اصلی: ساعات کاری اعلام‌شده (۸ تا ۱۶) در فوتر نمایش داده می‌شود", home.includes("۰۸:۰۰ تا ۱۶:۰۰"));
+  check("صفحه اصلی: ایمیل رسمی دفتر نمایش داده می‌شود", home.includes("Info@Khadamat447.IR"));
   const overflow = await mobile.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   check("موبایل: بدون اسکرول افقی", overflow <= 1, `overflow=${overflow}`);
   await mobile.screenshot({ path: path.join(ART, "home-mobile.png"), fullPage: false });

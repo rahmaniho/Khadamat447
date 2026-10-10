@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Markdown } from "@/components/markdown";
@@ -6,7 +7,7 @@ import { Breadcrumbs, Badge, ButtonLink } from "@/components/ui";
 import { Icon } from "@/components/icons";
 import { MapBlock } from "@/components/map-block";
 import { loadSite, loadSiteWithServices, mapsUrl, toFaPhone } from "@/lib/site";
-import { getServiceBySlug, getServiceFields, getPublishedFaqs } from "@/lib/queries";
+import { getServiceBySlug, getServiceFields, getPublishedFaqs, getPublishedArticles } from "@/lib/queries";
 import { pageMetadata, jsonLd, breadcrumbJsonLd, faqJsonLd } from "@/lib/seo";
 import { formatFaDay } from "@/lib/utils";
 import { stripMarkdown } from "@/lib/markdown";
@@ -35,6 +36,7 @@ export default async function ServicePage({ params }: { params: Params }) {
   const fields = await getServiceFields(svc.id);
   const faqs = (await getPublishedFaqs(svc.slug)).filter((f) => f.service_slug === svc.slug);
   const related = services.filter((s) => s.slug !== svc.slug && s.featured).slice(0, 3);
+  const articles = (await getPublishedArticles()).filter((a) => a.related_services.includes(svc.slug)).slice(0, 4);
   const phone = site.phone1;
 
   const sections = [
@@ -123,6 +125,30 @@ export default async function ServicePage({ params }: { params: Params }) {
                   </details>
                 ))}
               </div>
+            </section>
+          )}
+
+          {articles.length > 0 && (
+            <section aria-labelledby="service-articles" className="rounded-3xl border border-slate-200 bg-white p-6 md:p-8">
+              <h2 id="service-articles" className="text-2xl font-extrabold">مقالات آموزشی درباره {svc.title}</h2>
+              <p className="mt-2 text-sm leading-7 text-slate-600">پیش از ثبت درخواست، این راهنماها را مطالعه کنید تا اطلاعات و مدارک مورد نیاز را بهتر آماده کنید.</p>
+              <ul className="mt-6 grid gap-5 md:grid-cols-2">
+                {articles.map((a) => (
+                  <li key={a.slug}>
+                    <Link href={`/articles/${a.slug}`} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 hover:border-brand-200 hover:shadow-md">
+                      {a.cover_path && (
+                        <span className="relative block aspect-video bg-brand-50">
+                          <Image src={a.cover_path} alt={`تصویر آموزشی: ${a.title}`} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover transition duration-300 group-hover:scale-[1.02]" />
+                        </span>
+                      )}
+                      <span className="flex flex-1 flex-col p-5">
+                        <span className="font-extrabold leading-8 text-slate-900">{a.title}</span>
+                        <span className="mt-2 text-sm leading-7 text-slate-600">{a.excerpt}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </section>
           )}
 

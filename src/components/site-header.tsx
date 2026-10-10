@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/icons";
+import { BrandMark } from "@/components/logo";
 
 export interface NavItem {
   href: string;
@@ -37,9 +38,7 @@ export function SiteHeader({
     <header className="sticky top-0 z-40 border-b border-brand-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="flex items-center gap-3" aria-label={`${name} - صفحه اصلی`}>
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-800 text-white shadow-md shadow-brand-700/20">
-            <Icon name="shield" size={24} />
-          </span>
+          <BrandMark size={48} priority />
           <span className="leading-tight">
             <span className="block text-base font-extrabold text-brand-900">{name}</span>
             <span className="block text-xs text-slate-500">قزوین</span>

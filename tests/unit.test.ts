@@ -155,3 +155,65 @@ test("رمز عبور: حداقل طول و ترکیب", () => {
   assert.ok(passwordIssues("short").length > 0);
   assert.equal(passwordIssues("LongPassword2026").length, 0);
 });
+
+/* ---------------- ساعات کاری، FAQ مقاله‌ها و محتوای خدمات ---------------- */
+import { parseHoursRange, localBusinessJsonLd, absoluteAsset } from "../src/lib/seo";
+import { extractFaqPairs } from "../src/lib/markdown";
+import { ARTICLE_PACK } from "../src/lib/db/articles-content";
+import { SETTING_DEFAULTS, HOURS_DEFAULT_JSON, OFFICE_EMAIL_DEFAULT, SITE_URL_DEFAULT } from "../src/lib/settings";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
+test("ساعات کاری: تبدیل «۰۸:۰۰ تا ۱۶» به ساعت ISO", () => {
+  assert.deepEqual(parseHoursRange("۰۸:۰۰ تا ۱۶:۰۰"), { opens: "08:00", closes: "16:00" });
+  assert.deepEqual(parseHoursRange("8 - 16"), { opens: "08:00", closes: "16:00" });
+  assert.equal(parseHoursRange("بدون ساعت مشخص"), null);
+});
+
+test("ساعات کاری پیش‌فرض دفتر ۸ تا ۱۶ است و در JSON-LD دیده می‌شود", () => {
+  const hours = JSON.parse(HOURS_DEFAULT_JSON);
+  assert.equal(hours[0].hours, "۰۸:۰۰ تا ۱۶:۰۰");
+  assert.equal(SETTING_DEFAULTS["business.hours_json"], HOURS_DEFAULT_JSON);
+  const site = {
+    name: "x", city: "قزوین", province: "قزوین", address: "a", addressFull: "a", lat: 36.2, lng: 50.0,
+    mapUrl: "", mapProfileUrl: "", phone1: "09398520150", phone2: "", hours, social: [], publicEmail: "", siteUrl: "https://khadamat447.ir",
+    homeTitle: "", homeDescription: "", dataDisclaimer: "", footerNote: "", retentionDays: "", privacyMd: "", termsMd: "", aboutMd: "", slogan: "", description: "", shortName: "",
+  } as never;
+  const ld = localBusinessJsonLd(site) as { openingHoursSpecification: Array<{ opens: string; closes: string }> };
+  assert.equal(ld.openingHoursSpecification[0].opens, "08:00");
+  assert.equal(ld.openingHoursSpecification[0].closes, "16:00");
+});
+
+test("ایمیل رسمی و دامنه پیش‌فرض همان مقدارهای اعلام‌شده هستند", () => {
+  assert.equal(OFFICE_EMAIL_DEFAULT, "Info@Khadamat447.IR");
+  assert.equal(SITE_URL_DEFAULT, "https://khadamat447.ir");
+  assert.equal(absoluteAsset({ siteUrl: SITE_URL_DEFAULT } as never, "/brand/logo-mark.png"), "https://khadamat447.ir/brand/logo-mark.png");
+});
+
+test("استخراج پرسش و پاسخ از بخش «پرسش‌های متداول» مقاله", () => {
+  const md = "## پاسخ کوتاه\n\nمتن\n\n## پرسش‌های متداول\n\n### سؤال یک؟\n\nپاسخ **یک**.\n\n### سؤال دو؟\n\nپاسخ دو.\n";
+  const pairs = extractFaqPairs(md);
+  assert.equal(pairs.length, 2);
+  assert.equal(pairs[0].question, "سؤال یک؟");
+  assert.equal(pairs[0].answer, "پاسخ یک.");
+});
+
+test("مقاله‌های خدمات: دو مقاله برای هر خدمت، تصویر موجود و بدون ادعای ممنوع", () => {
+  const services = ["health-card", "health-training", "health-qualification", "audit-contracts"];
+  for (const svc of services) {
+    const count = ARTICLE_PACK.filter((a) => a.related.includes(svc)).length;
+    assert.equal(count, 2, `خدمت ${svc} باید دو مقاله داشته باشد`);
+  }
+  assert.equal(ARTICLE_PACK.length, 8);
+  const slugs = new Set(ARTICLE_PACK.map((a) => a.slug));
+  assert.equal(slugs.size, ARTICLE_PACK.length, "نامک‌ها باید یکتا باشند");
+  for (const a of ARTICLE_PACK) {
+    assert.ok(existsSync(join(process.cwd(), "public/images/articles", a.cover)), `تصویر ${a.cover} وجود ندارد`);
+    assert.ok(extractFaqPairs(a.body).length >= 2, `مقاله ${a.slug} باید حداقل دو پرسش متداول داشته باشد`);
+    assert.ok(/^## پاسخ کوتاه/m.test(a.body), `مقاله ${a.slug} باید پاسخ کوتاه داشته باشد`);
+    assert.ok(a.seo_title.includes("قزوین"), `عنوان سئوی ${a.slug} باید نام شهر را داشته باشد`);
+    for (const banned of ["تضمین مجوز", "تأیید صددرصدی"]) {
+      assert.ok(!a.body.includes(banned), `مقاله ${a.slug} نباید عبارت «${banned}» داشته باشد`);
+    }
+  }
+});

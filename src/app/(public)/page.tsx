@@ -68,7 +68,7 @@ export default async function HomePage() {
           <div className="order-1 lg:order-2">
             <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] shadow-2xl shadow-brand-900/20 ring-1 ring-brand-100">
               <Image
-                src="/images/hero-office.jpg"
+                src="/images/hero-office.webp"
                 alt="فضای داخلی و پذیرش دفتر خدمات سلامت، با میز پذیرش چوبی و نور طبیعی"
                 fill
                 priority

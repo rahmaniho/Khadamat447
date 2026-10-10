@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { PublicSiteConfig } from "@/lib/settings";
 import { Icon } from "@/components/icons";
+import { BrandMark } from "@/components/logo";
 import { toFaPhone } from "@/lib/site";
 
 export function SiteFooter({ site, services }: { site: PublicSiteConfig; services: Array<{ slug: string; title: string }> }) {
@@ -9,7 +10,10 @@ export function SiteFooter({ site, services }: { site: PublicSiteConfig; service
     <footer className="mt-20 bg-brand-900 text-brand-50">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="text-lg font-extrabold text-white">{site.name}</p>
+          <span className="inline-grid rounded-2xl bg-white p-2 shadow-lg shadow-black/10">
+            <BrandMark size={56} />
+          </span>
+          <p className="mt-4 text-lg font-extrabold text-white">{site.name}</p>
           <p className="mt-2 text-sm leading-7 text-brand-200">{site.slogan}</p>
           <p className="mt-4 text-sm leading-7 text-brand-100">{site.addressFull}</p>
           <a
@@ -76,6 +80,20 @@ export function SiteFooter({ site, services }: { site: PublicSiteConfig; service
                 </a>
               </li>
             ) : null}
+            {site.hours.length > 0 && (
+              <li className="flex items-start gap-2 text-brand-100">
+                <Icon name="clock" size={16} className="mt-0.5 shrink-0" />
+                <span>
+                  ساعات کاری:{" "}
+                  {site.hours.map((h, i) => (
+                    <span key={`${h.day}-${i}`}>
+                      {i > 0 && "، "}
+                      {h.day} {h.closed ? "تعطیل" : h.hours}
+                    </span>
+                  ))}
+                </span>
+              </li>
+            )}
             <li>
               <Link href="/contact" className="hover:text-white">صفحه تماس و موقعیت دفتر</Link>
             </li>

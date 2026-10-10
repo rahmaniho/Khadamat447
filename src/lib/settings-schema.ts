@@ -49,7 +49,7 @@ export const SETTING_GROUPS: SettingGroup[] = [
         key: "business.hours_json",
         label: "ساعات کاری (JSON)",
         kind: "json",
-        help: 'فرمت: [{"day":"شنبه تا چهارشنبه","hours":"۰۸:۰۰ تا ۱۶:۰۰","closed":false}]. خالی بگذارید اگر ساعات کاری رسمی هنوز اعلام نشده است.',
+        help: 'فرمت: [{"day":"شنبه تا چهارشنبه","hours":"۰۸:۰۰ تا ۱۶:۰۰","closed":false}]. ساعت پیش‌فرض ۸ تا ۱۶ است؛ روزهای کاری را در صورت نیاز ویرایش کنید.',
       },
       {
         key: "business.social_json",

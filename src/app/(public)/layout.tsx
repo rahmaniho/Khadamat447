@@ -2,7 +2,7 @@ import { SiteHeader, type NavItem } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { loadSiteWithServices } from "@/lib/site";
 import { getActiveAnnouncements } from "@/lib/queries";
-import { organizationJsonLd, localBusinessJsonLd, jsonLd } from "@/lib/seo";
+import { organizationJsonLd, localBusinessJsonLd, websiteJsonLd, jsonLd } from "@/lib/seo";
 import { Icon } from "@/components/icons";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -43,18 +43,7 @@ export default async function PublicLayout({ children }: { children: React.React
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(organizationJsonLd(site)) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: jsonLd({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            name: site.name,
-            url: site.siteUrl || undefined,
-            inLanguage: "fa-IR",
-          }),
-        }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(websiteJsonLd(site)) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(localBusinessJsonLd(site)) }} />
     </>
   );

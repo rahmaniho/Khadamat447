@@ -109,8 +109,37 @@ export function renderMarkdown(src: string): string {
 
 export function stripMarkdown(src: string): string {
   return (src || "")
-    .replace(/[#>*`_\-]/g, " ")
+    .replace(/\*\*|__|`/g, "")
+    .replace(/[#>*_\-]/g, " ")
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/**
+ * استخراج پرسش و پاسخ از بخش «پرسش‌های متداول» یک مقاله.
+ * هر عنوان «### پرسش» در زیر بخشی که نامش «پرسش» دارد، یک جفت پرسش و پاسخ است.
+ */
+export function extractFaqPairs(src: string): Array<{ question: string; answer: string }> {
+  const out: Array<{ question: string; answer: string }> = [];
+  let inFaq = false;
+  let cur: { question: string; answer: string } | null = null;
+  for (const raw of src.split("\n")) {
+    const line = raw.trim();
+    if (/^##\s+/.test(line)) {
+      inFaq = /پرسش/.test(line);
+      cur = null;
+      continue;
+    }
+    if (!inFaq) continue;
+    if (/^###\s+/.test(line)) {
+      cur = { question: line.replace(/^###\s+/, "").trim(), answer: "" };
+      out.push(cur);
+      continue;
+    }
+    if (cur && line) cur.answer += (cur.answer ? " " : "") + line;
+  }
+  return out
+    .map((f) => ({ question: f.question, answer: stripMarkdown(f.answer) }))
+    .filter((f) => f.question && f.answer);
 }

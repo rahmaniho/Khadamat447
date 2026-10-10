@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Breadcrumbs, SectionTitle } from "@/components/ui";
 import { SearchBox } from "@/components/article-search";
@@ -44,11 +45,24 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Pro
       )}
       <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {articles.map((a) => (
-          <Link key={a.id} href={`/articles/${a.slug}`} className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 hover:border-brand-200 hover:shadow-md">
-            <p className="text-xs font-bold text-brand-600">{a.category}</p>
-            <h2 className="mt-2 text-lg font-extrabold leading-8">{a.title}</h2>
-            <p className="mt-2 flex-1 text-sm leading-7 text-slate-600">{a.excerpt}</p>
-            <p className="mt-4 text-xs text-slate-500">به‌روزرسانی: {formatFaDay(a.updated_at)}</p>
+          <Link key={a.id} href={`/articles/${a.slug}`} className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white hover:border-brand-200 hover:shadow-md">
+            {a.cover_path && (
+              <div className="relative aspect-video bg-brand-50">
+                <Image
+                  src={a.cover_path}
+                  alt={`تصویر آموزشی: ${a.title}`}
+                  fill
+                  sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            )}
+            <div className="flex flex-1 flex-col p-6">
+              <p className="text-xs font-bold text-brand-600">{a.category}</p>
+              <h2 className="mt-2 text-lg font-extrabold leading-8">{a.title}</h2>
+              <p className="mt-2 flex-1 text-sm leading-7 text-slate-600">{a.excerpt}</p>
+              <p className="mt-4 text-xs text-slate-500">به‌روزرسانی: {formatFaDay(a.updated_at)}</p>
+            </div>
           </Link>
         ))}
       </div>

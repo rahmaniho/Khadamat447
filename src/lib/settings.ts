@@ -9,6 +9,17 @@ import { all, run, nowIso } from "@/lib/db";
 
 export type SettingsMap = Record<string, string>;
 
+/** ساعات کاری اعلام‌شده (۸ تا ۱۶) */
+export const HOURS_DEFAULT_JSON = JSON.stringify([
+  { day: "ساعات کاری دفتر", hours: "۰۸:۰۰ تا ۱۶:۰۰", closed: false },
+]);
+
+/** دامنه پیشنهادی سایت بر اساس دامنه ایمیل رسمی دفتر */
+export const SITE_URL_DEFAULT = "https://khadamat447.ir";
+
+/** ایمیل رسمی دفتر (اعلام‌شده توسط دفتر). با متغیرهای محیطی قابل بازنویسی است. */
+export const OFFICE_EMAIL_DEFAULT = "Info@Khadamat447.IR";
+
 /** مقدارهای پیش‌فرض - بدون هیچ داده ساختگی (ایمیل‌ها خالی و از env خوانده می‌شوند) */
 export const SETTING_DEFAULTS: SettingsMap = {
   "site.name": "دفتر خدمات سلامت ۴۷۷",
@@ -27,11 +38,12 @@ export const SETTING_DEFAULTS: SettingsMap = {
   "business.map_profile_url": "",
   "business.phone_1": "09398520150",
   "business.phone_2": "02833992550",
-  // ساعات کاری رسمی هنوز اعلام نشده است؛ تا تکمیل از پنل مدیریت، نمایش داده نمی‌شود.
-  "business.hours_json": "[]",
+  // ساعات کاری اعلام‌شده توسط دفتر: ۸ صبح تا ۱۶. فهرست روزهای کاری هنوز تأیید نشده و از پنل مدیریت قابل ویرایش است.
+  "business.hours_json": HOURS_DEFAULT_JSON,
   "business.social_json": "[]",
 
-  "seo.site_url": "",
+  // دامنه سایت؛ با متغیر NEXT_PUBLIC_SITE_URL قابل بازنویسی است.
+  "seo.site_url": SITE_URL_DEFAULT,
   "seo.home_title": "دفتر خدمات سلامت ۴۷۷ قزوین | ثبت درخواست آنلاین",
   "seo.home_description":
     "معرفی خدمات دفتر خدمات سلامت ۴۷۷ در قزوین؛ مشاهده خدمات کارت بهداشت، آموزش بهداشت اصناف، صلاحیت بهداشت و ممیزی، همراه با ثبت درخواست آنلاین و راهنمای موقعیت دفتر.",
@@ -72,9 +84,9 @@ export const SETTING_DEFAULTS: SettingsMap = {
 
 /** کلیدهایی که فقط از متغیرهای محیطی خوانده می‌شوند (هرگز در DB یا UI عمومی) */
 export const envOnly = {
-  adminEmail: () => (process.env.ADMIN_NOTIFICATION_EMAIL || "").trim(),
+  adminEmail: () => (process.env.ADMIN_NOTIFICATION_EMAIL || "").trim() || OFFICE_EMAIL_DEFAULT,
   mailFrom: () => (process.env.MAIL_FROM || "").trim(),
-  publicEmail: () => (process.env.PUBLIC_CONTACT_EMAIL || "").trim(),
+  publicEmail: () => (process.env.PUBLIC_CONTACT_EMAIL || "").trim() || OFFICE_EMAIL_DEFAULT,
   siteUrl: () => (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, ""),
 };
 
@@ -124,6 +136,7 @@ export interface PublicSiteConfig {
   slogan: string;
   description: string;
   city: string;
+  province: string;
   address: string;
   addressFull: string;
   lat: number;
@@ -168,6 +181,7 @@ export async function getSiteConfig(): Promise<PublicSiteConfig> {
     slogan: s["site.slogan"],
     description: s["site.description"],
     city: s["site.city"],
+    province: s["site.province"],
     address: s["business.address"],
     addressFull: s["business.address_full"],
     lat: Number(s["business.lat"]) || 36.2678594,
@@ -198,6 +212,15 @@ export async function ensureSettingsSeeded(): Promise<void> {
       "INSERT INTO settings (key, value, updated_at) VALUES (?,?,?) ON CONFLICT(key) DO NOTHING",
       [key, value, nowIso()],
     );
+  }
+  // انتقال یک‌باره: پایگاه‌داده‌های قدیمی که هنوز مقدار خالی/پیش‌فرض قبلی دارند،
+  // مقدار جدید ساعات کاری و دامنه را دریافت می‌کنند. مقادیری که مدیر ویرایش کرده، دست‌نخورده می‌ماند.
+  const migrations: Array<[string, string, string]> = [
+    ["business.hours_json", "[]", HOURS_DEFAULT_JSON],
+    ["seo.site_url", "", SITE_URL_DEFAULT],
+  ];
+  for (const [key, from, to] of migrations) {
+    await run("UPDATE settings SET value = ?, updated_at = ? WHERE key = ? AND value = ?", [to, nowIso(), key, from]);
   }
   invalidateSettingsCache();
 }

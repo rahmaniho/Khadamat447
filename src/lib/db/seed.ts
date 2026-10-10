@@ -10,6 +10,7 @@
  */
 import { get, run, nowIso } from "./index";
 import { newId as newIdSafe } from "../utils";
+import { ARTICLE_PACK } from "./articles-content";
 
 type ServiceSeed = {
   slug: string;
@@ -701,21 +702,45 @@ export async function seedDatabase(): Promise<{
     }
   }
 
-  const articleCount = await get<{ c: number }>("SELECT COUNT(*) AS c FROM articles");
-  if (!articleCount || Number(articleCount.c) === 0) {
-    for (const a of ARTICLES) {
-      await run(
-        `INSERT INTO articles (id, slug, title, excerpt, body_md, cover_path, author, category, status,
-           related_services, seo_title, seo_description, review_note, published_at, updated_at, created_at)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [
-          newIdSafe(), a.slug, a.title, a.excerpt, a.body, "", "دفتر خدمات سلامت ۴۷۷", a.category, a.status,
-          JSON.stringify(a.related), a.seo_title, a.seo_description, a.review_note || "",
-          a.status === "published" ? nowIso() : null, nowIso(), nowIso(),
-        ],
-      );
-      created.articles++;
+  // مقاله‌ها بر اساس slug درج می‌شوند تا پایگاه‌داده‌های قدیمی هم مقاله‌های جدید را دریافت کنند.
+  // مقاله‌ای که از قبل وجود دارد دست‌نخورده می‌ماند.
+  for (const a of ARTICLES) {
+    const exists = await get<{ id: string }>("SELECT id FROM articles WHERE slug = ?", [a.slug]);
+    if (exists) continue;
+    await run(
+      `INSERT INTO articles (id, slug, title, excerpt, body_md, cover_path, author, category, status,
+         related_services, seo_title, seo_description, review_note, published_at, updated_at, created_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [
+        newIdSafe(), a.slug, a.title, a.excerpt, a.body, "", "دفتر خدمات سلامت ۴۷۷", a.category, a.status,
+        JSON.stringify(a.related), a.seo_title, a.seo_description, a.review_note || "",
+        a.status === "published" ? nowIso() : null, nowIso(), nowIso(),
+      ],
+    );
+    created.articles++;
+  }
+
+  // مقاله‌های آموزشی هر خدمت (دو مقاله برای هر خدمت، با تصویر کاور)
+  for (const a of ARTICLE_PACK) {
+    const exists = await get<{ id: string; cover_path: string }>("SELECT id, cover_path FROM articles WHERE slug = ?", [a.slug]);
+    const cover = `/images/articles/${a.cover}`;
+    if (exists) {
+      // فقط تصویر کاور خالی را پر می‌کنیم؛ متن ویرایش‌شده توسط مدیر حفظ می‌شود
+      if (!exists.cover_path) await run("UPDATE articles SET cover_path = ? WHERE id = ?", [cover, exists.id]);
+      continue;
     }
+    await run(
+      `INSERT INTO articles (id, slug, title, excerpt, body_md, cover_path, author, category, status,
+         related_services, seo_title, seo_description, review_note, published_at, updated_at, created_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [
+        newIdSafe(), a.slug, a.title, a.excerpt, a.body, cover, "تیم محتوای دفتر خدمات سلامت ۴۷۷", a.category, "published",
+        JSON.stringify(a.related), a.seo_title, a.seo_description,
+        "مطلب آموزشی است. الزامات و مدارک نهایی هر خدمت پیش از اعلام رسمی توسط دفتر بازبینی می‌شود.",
+        nowIso(), nowIso(), nowIso(),
+      ],
+    );
+    created.articles++;
   }
 
   return { ...created, created: created.services > 0 };
