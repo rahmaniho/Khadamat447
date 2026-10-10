@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/fonts/Vazirmatn-var.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Vazirmatn", "Tahoma", system-ui, sans-serif;
+  --color-brand-50: #ecfdf8;
+  --color-brand-100: #d1f7ec;
+  --color-brand-200: #a5ecd9;
+  --color-brand-500: #14a38b;
+  --color-brand-600: #0f8a77;
+  --color-brand-700: #0f766e;
+  --color-brand-800: #115e59;
+  --color-brand-900: #134e4a;
+  --color-ink: #0f172a;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  direction: rtl;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: #f7faf9;
+  color: var(--color-ink);
+  line-height: 1.9;
+  font-feature-settings: "ss01" 0;
+}
+
+.prose-fa h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 1.6rem 0 0.6rem;
+  color: var(--color-brand-800);
+}
+.prose-fa h3,
+.prose-fa h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 1.2rem 0 0.4rem;
+}
+.prose-fa p {
+  margin: 0.7rem 0;
+}
+.prose-fa ul {
+  list-style: disc;
+  padding-inline-start: 1.4rem;
+  margin: 0.6rem 0;
+}
+.prose-fa ol {
+  list-style: decimal;
+  padding-inline-start: 1.4rem;
+  margin: 0.6rem 0;
+}
+.prose-fa li {
+  margin: 0.3rem 0;
+}
+.prose-fa blockquote {
+  border-inline-start: 4px solid var(--color-brand-500);
+  background: var(--color-brand-50);
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  margin: 1rem 0;
+  color: #134e4a;
+}
+.prose-fa a {
+  color: var(--color-brand-700);
+  text-decoration: underline;
+}
+.prose-fa code {
+  background: #f1f5f9;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.3rem;
+  direction: ltr;
+  display: inline-block;
+}
+
+.ltr-num {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
