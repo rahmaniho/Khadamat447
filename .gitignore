@@ -10,6 +10,9 @@ build/
 next-env.d.ts
 *.tsbuildinfo
 
+# temporary backup created by scripts/build-static.sh
+.build-backup/
+
 # runtime data (database, uploads, logs) - never commit
 .data/
 storage/

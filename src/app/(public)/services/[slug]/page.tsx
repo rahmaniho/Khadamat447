@@ -14,6 +14,13 @@ import { stripMarkdown } from "@/lib/markdown";
 
 type Params = Promise<{ slug: string }>;
 
+/** لیست اسلاگ‌ها برای ساخت صفحات static در build-time (GitHub Pages) */
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+  const { getActiveServices } = await import("@/lib/queries");
+  const services = await getActiveServices();
+  return services.map((s) => ({ slug: s.slug }));
+}
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const site = await loadSite();

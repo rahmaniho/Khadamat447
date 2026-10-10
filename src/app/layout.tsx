@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-export const dynamic = "force-dynamic";
+// در حالت static export نباید dynamic باشد؛ در حالت عادی (dev/server) نیازی نیست چون صفحات خودشان dynamic اند
+// اما برای سازگاری با build، فقط در حالت non-static اعمال می‌شود
+// (نگه داشتن layout ریشه dynamic باعث شکست static export می‌شود)
 
 export const viewport: Viewport = {
   width: "device-width",

@@ -19,7 +19,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ArticlesPage({ searchParams }: { searchParams: Promise<{ q?: string; cat?: string }> }) {
-  const { q = "", cat = "" } = await searchParams;
+  // در حالت static export، searchParams در build-time موجود نیست
+  let q = "";
+  let cat = "";
+  try {
+    const sp = await searchParams;
+    q = sp?.q || "";
+    cat = sp?.cat || "";
+  } catch {
+    /* ignore: build-time */
+  }
   const [articles, categories] = await Promise.all([
     getPublishedArticles(cat || undefined, q.slice(0, 100) || undefined),
     getArticleCategories(),

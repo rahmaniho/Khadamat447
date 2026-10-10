@@ -12,7 +12,13 @@ export const metadata: Metadata = {
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   await loadSite();
-  const { q = "" } = await searchParams;
+  let q = "";
+  try {
+    const sp = await searchParams;
+    q = sp?.q || "";
+  } catch {
+    /* ignore: build-time */
+  }
   const term = q.trim().slice(0, 100);
   const results = term.length >= 2 ? await searchContent(term) : null;
   const total = results ? results.services.length + results.articles.length + results.faqs.length : 0;
