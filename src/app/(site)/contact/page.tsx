@@ -179,13 +179,26 @@ export default function ContactPage() {
                   مسیریابی
                 </a>
               </div>
-              <iframe
-                title="نقشه موقعیت دفتر خدمات سلامت ۴۷۷"
-                src={SITE.mapEmbedUrl}
-                className="h-[26rem] w-full border-0"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+              <div className="relative h-[26rem] w-full bg-[var(--surface-muted)]">
+                {/* پس‌زمینه جایگزین؛ اگر نقشه در شبکه بسته بارگذاری نشود، همین قالب نمایش داده می‌شود */}
+                <div className="pointer-events-none absolute inset-0 grid-pattern opacity-60" aria-hidden />
+                <div className="pointer-events-none absolute inset-0 grid place-items-center">
+                  <div className="rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)]/85 px-5 py-4 text-center backdrop-blur">
+                    <Icon name="pin" size={26} className="mx-auto text-brand-600 dark:text-brand-400" />
+                    <p className="mt-2 text-[0.78rem] font-black text-ink-800 dark:text-ink-100">برج خلیج فارس، طبقه ششم</p>
+                    <p className="numeric mt-0.5 text-[0.66rem] font-bold text-ink-500 dark:text-ink-400">
+                      {toFaDigits(`${SITE.lat}, ${SITE.lng}`)}
+                    </p>
+                  </div>
+                </div>
+                <iframe
+                  title="نقشه موقعیت دفتر خدمات سلامت ۴۷۷"
+                  src={SITE.mapEmbedUrl}
+                  className="relative h-full w-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
               <div className="flex flex-wrap items-center justify-between gap-3 p-4 text-[0.72rem] font-bold text-ink-500 dark:text-ink-400">
                 <span>مختصات: {toFaDigits(`${SITE.lat}, ${SITE.lng}`)}</span>
                 <span>{openingHoursText()}</span>
