@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { CtaBand, PageHero, Section } from "@/components/site/section";
 import { Alert, Card, Metric, SectionHeading } from "@/components/ui/primitives";
@@ -191,20 +192,20 @@ export default function TermsPage() {
               description="با ارسال درخواست در سامانه، تأیید می‌کنید که این شرایط و سیاست حریم خصوصی را خوانده‌اید و اطلاعات وارد‌شده صحیح است."
             />
             <div className="flex flex-wrap gap-3">
-              <a
+              <Link
                 href="/privacy"
                 className="inline-flex items-center gap-2 rounded-2xl bg-brand-600 px-4 py-3 text-[0.82rem] font-black text-white transition hover:bg-brand-700"
               >
                 <Icon name="lock" size={17} />
                 مطالعه حریم خصوصی
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/request"
                 className="inline-flex items-center gap-2 rounded-2xl border border-[var(--border-soft)] px-4 py-3 text-[0.82rem] font-black text-ink-700 transition hover:border-brand-300 hover:text-brand-700 dark:text-ink-200"
               >
                 <Icon name="send" size={17} />
                 شروع ثبت درخواست
-              </a>
+              </Link>
             </div>
           </div>
         </div>

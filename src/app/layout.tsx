@@ -1,8 +1,18 @@
 import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { baseMetadata, jsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import { SITE } from "@/lib/content/site";
+
+const vazirmatn = localFont({
+  src: "../assets/fonts/Vazirmatn-var.woff2",
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
+  variable: "--font-vazirmatn",
+  preload: true,
+});
 
 export const metadata: Metadata = baseMetadata();
 
@@ -19,9 +29,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fa" dir="rtl" suppressHydrationWarning>
+    <html lang="fa" dir="rtl" className={vazirmatn.variable} suppressHydrationWarning>
       <head>
-        <link rel="preload" href="/fonts/Vazirmatn-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <script
           type="application/ld+json"
           // داده ساختاریافته سازمان، وب‌سایت و اطلاعات تماس

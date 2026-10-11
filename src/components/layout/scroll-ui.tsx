@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { cn } from "@/lib/cn";
 
@@ -74,20 +75,20 @@ export function MobileActionBar() {
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0",
       )}
     >
-      <a
+      <Link
         href="/request"
         className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-brand-700 to-brand-500 text-[0.82rem] font-black text-white"
       >
         <Icon name="send" size={17} />
         ثبت درخواست
-      </a>
-      <a
+      </Link>
+      <Link
         href="/track"
         className="flex h-11 items-center justify-center gap-2 rounded-2xl border border-[var(--border-soft)] px-4 text-[0.82rem] font-black text-ink-700 dark:text-ink-200"
       >
         <Icon name="track" size={17} />
         پیگیری
-      </a>
+      </Link>
     </div>
   );
 }

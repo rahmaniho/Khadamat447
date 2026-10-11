@@ -10,16 +10,10 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@font-face {
-  font-family: "Vazirmatn";
-  src: url("/fonts/Vazirmatn-var.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
+/* فونت وزیرمتن با next/font/local بارگذاری می‌شود (بدون CDN و با مسیر سازگار با basePath) */
 
 @theme {
-  --font-sans: "Vazirmatn", "Tahoma", system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-vazirmatn), "Tahoma", system-ui, -apple-system, sans-serif;
 
   /* ---------- رنگ اصلی: فیروزه‌ای سلامت ---------- */
   --color-brand-50: #eff9f7;
