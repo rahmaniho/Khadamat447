@@ -1,8 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-
-type Theme = "light" | "dark";
+import { THEME_STORAGE_KEY, type Theme } from "@/lib/theme";
 
 interface ThemeValue {
   theme: Theme;
@@ -12,15 +11,21 @@ interface ThemeValue {
 
 const ThemeContext = createContext<ThemeValue>({ theme: "light", toggle: () => {}, setTheme: () => {} });
 
-const STORAGE_KEY = "khadamat447.theme";
+/** خواندن تم فعلی از روی کلاس اعمال‌شده روی <html> (توسط اسکریپت اولیه) */
+function currentDocumentTheme(): Theme {
+  if (typeof document === "undefined") return "light";
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
+  // مقدار اولیه از DOM خوانده می‌شود تا با اسکریپت ضد‌پرش هم‌خوان باشد و
+  // پس از hydration، آیکون کلید تم بدون پرش هم‌گام شود.
+  const [theme, setThemeState] = useState<Theme>(currentDocumentTheme);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
     const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-    const initial: Theme = stored ?? (prefersDark ? "dark" : "light");
+    const initial: Theme = stored === "dark" || stored === "light" ? stored : prefersDark ? "dark" : "light";
     setThemeState(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");
   }, []);
@@ -28,8 +33,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next);
     document.documentElement.classList.toggle("dark", next === "dark");
+    document.documentElement.style.colorScheme = next;
     try {
-      window.localStorage.setItem(STORAGE_KEY, next);
+      window.localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {
       /* بی‌صدا */
     }

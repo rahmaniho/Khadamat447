@@ -10,9 +10,6 @@ build/
 next-env.d.ts
 *.tsbuildinfo
 
-# temporary backup created by scripts/build-static.sh
-.build-backup/
-
 # runtime data (database, uploads, logs) - never commit
 .data/
 storage/
@@ -32,6 +29,3 @@ coverage/
 dist/
 npm-debug.log*
 .vercel
-
-# e2e artifacts (screenshots, generated files)
-tests/e2e/artifacts/

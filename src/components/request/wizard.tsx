@@ -185,7 +185,10 @@ export function RequestWizard({ initialService = "" }: { initialService?: string
 
   const handleFiles = (incoming: File[]) => {
     const problems: FilePickerError[] = [];
-    const accepted: Attachment[] = [];
+    // هر فایل پذیرفته‌شده همراه خودِ File نگه داشته می‌شود؛ پیش‌تر فایل
+    // مبنا با «هم‌نامی + اندیس در فهرست پذیرفته‌شده‌ها» جست‌وجو می‌شد که
+    // با فایل‌های هم‌نام یا فایل‌های ردشده، پیش‌نمایش اشتباه می‌داد.
+    const accepted: Array<{ attachment: Attachment; file: File }> = [];
     let count = files.length;
 
     for (const file of incoming) {
@@ -204,23 +207,25 @@ export function RequestWizard({ initialService = "" }: { initialService?: string
       }
       count += 1;
       accepted.push({
-        id: `att-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        ext,
-        uploadedAt: new Date().toISOString(),
-        verified: false,
+        file,
+        attachment: {
+          id: `att-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          ext,
+          uploadedAt: new Date().toISOString(),
+          verified: false,
+        },
       });
     }
 
     setFileErrors(problems);
     if (accepted.length) {
-      setFiles((prev) => [...prev, ...accepted]);
-      // پیش‌نمایش تصویر کوچک (فقط برای فایل‌های سبک)
-      accepted.forEach((attachment, index) => {
-        const file = incoming.filter((f) => f.name === attachment.name)[index] ?? incoming[0];
-        if (!file.type.startsWith("image/") || file.size > 400_000) return;
+      setFiles((prev) => [...prev, ...accepted.map((item) => item.attachment)]);
+      // پیش‌نمایش تصویر کوچک (فقط برای فایل‌های تصویری سبک)
+      for (const { attachment, file } of accepted) {
+        if (!file.type.startsWith("image/") || file.size > 400_000) continue;
         const reader = new FileReader();
         reader.onload = () => {
           const result = typeof reader.result === "string" ? reader.result : null;
@@ -228,7 +233,7 @@ export function RequestWizard({ initialService = "" }: { initialService?: string
           setFiles((prev) => prev.map((f) => (f.id === attachment.id ? { ...f, preview: result } : f)));
         };
         reader.readAsDataURL(file);
-      });
+      }
       toast.success(`${fa(accepted.length)} فایل افزوده شد`);
     }
     if (problems.length) toast.error("برخی فایل‌ها پذیرفته نشد", `${fa(problems.length)} مورد رد شد.`);
