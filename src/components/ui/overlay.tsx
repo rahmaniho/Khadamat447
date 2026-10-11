@@ -62,7 +62,9 @@ export function Modal({
       <div className="fixed inset-0 bg-ink-950/55 backdrop-blur-sm animate-fade-in" onClick={onClose} aria-hidden />
       <div
         className={cn(
-          "relative z-10 w-full animate-scale-in rounded-t-4xl border border-[var(--border-soft)] bg-[var(--surface)] shadow-2xl sm:rounded-4xl",
+          // در موبایل به‌صورت برگه پایینی (bottom sheet) باز می‌شود و با
+          // safe-area از نشانگر خانه گوشی‌های ناچ‌دار فاصله می‌گیرد.
+          "relative z-10 w-full animate-scale-in rounded-t-4xl border border-[var(--border-soft)] bg-[var(--surface)] pb-[env(safe-area-inset-bottom,0px)] shadow-2xl sm:rounded-4xl sm:pb-0",
           widths[size],
         )}
       >
@@ -171,7 +173,7 @@ export function Drawer({
           side === "start" ? "start-0 border-e" : "end-0 border-s",
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col pb-[env(safe-area-inset-bottom,0px)]">
           {title && (
             <header className="flex items-center justify-between gap-3 border-b border-[var(--border-soft)] p-5">
               <h2 className="text-lg font-black text-ink-900 dark:text-white">{title}</h2>
@@ -356,8 +358,10 @@ export function Tooltip({
           id={id}
           role="tooltip"
           className={cn(
-            "pointer-events-none absolute z-50 w-max max-w-64 animate-fade-in rounded-xl bg-ink-950 px-3 py-2 text-[0.7rem] font-bold leading-6 text-white shadow-xl dark:bg-white dark:text-ink-900",
-            side === "top" ? "bottom-full start-1/2 mb-2 -translate-x-1/2 rtl:translate-x-1/2" : "top-full start-1/2 mt-2 -translate-x-1/2 rtl:translate-x-1/2",
+            // مرکزگیری با inset دو‌طرفه + margin خودکار (منطقی و بی‌وابسته به
+            // جهت نوشتار) — عرض راهنما متغیر است و translate در RTL مبهم بود
+            "pointer-events-none absolute start-0 end-0 z-50 mx-auto w-max max-w-64 animate-fade-in rounded-xl bg-ink-950 px-3 py-2 text-[0.7rem] font-bold leading-6 text-white shadow-xl dark:bg-white dark:text-ink-900",
+            side === "top" ? "bottom-full mb-2" : "top-full mt-2",
           )}
         >
           {content}
@@ -385,7 +389,11 @@ export function ToasterHost({
     warning: { icon: "alert", ring: "border-amber-200 dark:border-amber-500/30", text: "text-amber-600 dark:text-amber-400" },
   };
   return (
-    <div className="pointer-events-none fixed bottom-4 start-4 z-[95] flex w-[min(94vw,24rem)] flex-col gap-2">
+    <div
+      // در موبایل بالاتر از نوار اقدام شناور قرار می‌گیرد تا دکمه‌های
+      // «ثبت درخواست/پیگیری» زیر اعلان پنهان نشوند.
+      className="pointer-events-none fixed bottom-[calc(4.9rem+env(safe-area-inset-bottom,0px))] start-4 z-[95] flex w-[min(94vw,24rem)] flex-col gap-2 sm:bottom-4"
+    >
       {toasts.map((t) => {
         const tone = tones[t.tone];
         return (
@@ -405,7 +413,7 @@ export function ToasterHost({
             <button
               type="button"
               onClick={() => onDismiss(t.id)}
-              className="grid h-6 w-6 shrink-0 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-100 dark:hover:bg-white/10"
+              className="hit-expand grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-100 dark:hover:bg-white/10"
               aria-label="بستن اعلان"
             >
               <Icon name="close" size={13} />

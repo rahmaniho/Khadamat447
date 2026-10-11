@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { FOOTER_LINKS, SITE } from "@/lib/content/site";
+import { activeBasePath } from "@/lib/basepath";
 import { toFaDigits } from "@/lib/digits";
 import { NewsletterForm } from "@/components/layout/newsletter-form";
 
@@ -11,7 +12,8 @@ export function SiteFooter() {
     <footer className="relative mt-20 overflow-hidden border-t border-[var(--border-soft)] bg-[var(--surface)]">
       <div className="pointer-events-none absolute inset-x-0 -top-32 h-64 bg-gradient-to-b from-brand-50/70 to-transparent dark:from-brand-500/5" aria-hidden />
 
-      <div className="relative mx-auto max-w-7xl px-4 py-14">
+      {/* در موبایل فاصله پایین بیشتر است تا نوار اقدام شناور، آخرین پیوندها را نپوشاند */}
+      <div className="relative mx-auto max-w-7xl px-4 pb-28 pt-14 sm:pb-14">
         <div className="grid gap-10 lg:grid-cols-[1.4fr_2.6fr]">
           {/* معرفی */}
           <div>
@@ -117,6 +119,15 @@ export function SiteFooter() {
             <Link href="/sitemap.xml" className="transition hover:text-brand-700 dark:hover:text-brand-300">
               نقشه سایت
             </Link>
+            {/* پیوند ساده (نه Link) چون llms.txt یک فایل متنی است، نه صفحه RSC؛
+                در حالت استاتیک با basePath ساخته می‌شود */}
+            <a
+              href={`${activeBasePath()}/llms.txt`}
+              className="transition hover:text-brand-700 dark:hover:text-brand-300"
+              dir="ltr"
+            >
+              llms.txt
+            </a>
           </div>
         </div>
       </div>

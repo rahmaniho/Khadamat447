@@ -4,7 +4,7 @@ import { ArticleCard } from "@/components/articles/article-card";
 import { CtaBand, PageHero, Section } from "@/components/site/section";
 import { Badge, ButtonLink, SectionHeading } from "@/components/ui/primitives";
 import { ARTICLES, ARTICLE_CATEGORIES, SERVICES } from "@/lib/content";
-import { pageMetadata } from "@/lib/seo";
+import { itemListJsonLd, jsonLd, pageMetadata } from "@/lib/seo";
 import { fa } from "@/lib/format";
 import { toFaDigits } from "@/lib/digits";
 
@@ -22,6 +22,18 @@ export default function ArticlesPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd(
+            itemListJsonLd({
+              name: "آموزش‌ها و راهنماهای دفتر خدمات سلامت ۴۷۷",
+              path: "/articles",
+              items: ARTICLES.map((a) => ({ name: a.title, href: `/articles/${a.slug}`, description: a.excerpt })),
+            }),
+          ),
+        }}
+      />
       <PageHero
         eyebrow="آموزش و راهنما"
         icon="book"

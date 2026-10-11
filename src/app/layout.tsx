@@ -26,6 +26,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   colorScheme: "light dark",
+  /* پوشش کامل صفحه در گوشی‌های ناچ‌دار؛ اجزای شناور با env(safe-area-inset-*)
+     از روی نوار وضعیت و نشانگر خانه کنار می‌روند */
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

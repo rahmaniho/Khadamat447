@@ -24,6 +24,8 @@ export function SiteHeader() {
   const [openMenu, setOpenMenu] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  // کلید میان‌بر واقعی دستگاه: در ویندوز/لینوکس Ctrl و در مک ⌘
+  const [modKey, setModKey] = useState("⌘");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -33,9 +35,36 @@ export function SiteHeader() {
   }, []);
 
   useEffect(() => {
+    if (!/Mac|iPod|iPhone|iPad/.test(navigator.userAgent)) setModKey("Ctrl");
+  }, []);
+
+  useEffect(() => {
     setOpenMenu(false);
     setMegaOpen(false);
   }, [pathname]);
+
+  /* منوی موبایل: قفل اسکرول پس‌زمینه، بستن با Escape و بستن خودکار
+     هنگام بزرگ‌شدن عرض صفحه (چرخش گوشی به حالت افقی یا دسکتاپ) تا منو
+     همیشه با اندازه واقعی صفحه هم‌گام بماند. */
+  useEffect(() => {
+    if (!openMenu) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenMenu(false);
+    };
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
+    const onMedia = (e: MediaQueryListEvent) => {
+      if (e.matches) setOpenMenu(false);
+    };
+    window.addEventListener("keydown", onKey);
+    desktopQuery.addEventListener("change", onMedia);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey);
+      desktopQuery.removeEventListener("change", onMedia);
+    };
+  }, [openMenu]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -118,7 +147,7 @@ export function SiteHeader() {
                   </button>
 
                   {megaOpen && (
-                    <div className="absolute start-1/2 top-full z-50 w-[30rem] -translate-x-1/2 pt-2 rtl:translate-x-1/2">
+                    <div className="absolute start-1/2 top-full z-50 w-[30rem] -ms-[15rem] pt-2">
                       <div className="animate-scale-in overflow-hidden rounded-4xl border border-[var(--border-soft)] bg-[var(--surface)] p-2 shadow-2xl">
                         <ul className="grid gap-1 sm:grid-cols-2">
                           {item.children.map((child) => (
@@ -185,12 +214,12 @@ export function SiteHeader() {
             >
               <Icon name="search" size={16} />
               جست‌وجو
-              <Kbd>⌘K</Kbd>
+              <Kbd>{modKey}K</Kbd>
             </button>
             <button
               type="button"
               onClick={() => setPaletteOpen(true)}
-              className="grid h-10 w-10 place-items-center rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] text-ink-600 transition hover:border-brand-300 hover:text-brand-700 md:hidden dark:text-ink-300"
+              className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] text-ink-600 transition hover:border-brand-300 hover:text-brand-700 md:hidden dark:text-ink-300"
               aria-label="جست‌وجو"
             >
               <Icon name="search" size={18} />
@@ -205,7 +234,7 @@ export function SiteHeader() {
             <button
               type="button"
               onClick={() => setOpenMenu(true)}
-              className="grid h-10 w-10 place-items-center rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] text-ink-700 lg:hidden dark:text-ink-200"
+              className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] text-ink-700 lg:hidden dark:text-ink-200"
               aria-label="باز کردن منو"
               aria-expanded={openMenu}
             >
@@ -219,13 +248,13 @@ export function SiteHeader() {
       {openMenu && (
         <div className="fixed inset-0 z-[70] lg:hidden" role="dialog" aria-modal="true" aria-label="منوی موبایل">
           <div className="absolute inset-0 bg-ink-950/50 backdrop-blur-sm animate-fade-in" onClick={() => setOpenMenu(false)} aria-hidden />
-          <div className="absolute inset-y-0 end-0 w-[min(92vw,22rem)] animate-scale-in overflow-y-auto border-s border-[var(--border-soft)] bg-[var(--surface)] shadow-2xl">
+          <div className="absolute inset-y-0 end-0 w-[min(92vw,22rem)] animate-scale-in overflow-y-auto overscroll-contain border-s border-[var(--border-soft)] bg-[var(--surface)] pb-[env(safe-area-inset-bottom,0px)] shadow-2xl">
             <div className="flex items-center justify-between border-b border-[var(--border-soft)] p-4">
               <Logo size={36} />
               <button
                 type="button"
                 onClick={() => setOpenMenu(false)}
-                className="grid h-9 w-9 place-items-center rounded-xl text-ink-500 transition hover:bg-ink-100 dark:hover:bg-white/10"
+                className="grid h-11 w-11 place-items-center rounded-xl text-ink-500 transition hover:bg-ink-100 dark:hover:bg-white/10"
                 aria-label="بستن منو"
               >
                 <Icon name="close" size={18} />

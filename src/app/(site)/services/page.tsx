@@ -7,7 +7,7 @@ import { Badge, ButtonLink, Card, SectionHeading } from "@/components/ui/primiti
 import { Reveal } from "@/components/ui/overlay";
 import { SERVICES } from "@/lib/content";
 import { FAQS } from "@/lib/content";
-import { pageMetadata, jsonLd, serviceJsonLd } from "@/lib/seo";
+import { pageMetadata, jsonLd, serviceJsonLd, itemListJsonLd } from "@/lib/seo";
 import { toFaDigits } from "@/lib/digits";
 
 export const metadata: Metadata = pageMetadata({
@@ -26,6 +26,18 @@ const COMPARISON = [
 export default function ServicesPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd(
+            itemListJsonLd({
+              name: "خدمات دفتر خدمات سلامت ۴۷۷",
+              path: "/services",
+              items: SERVICES.map((s) => ({ name: s.title, href: `/services/${s.slug}`, description: s.summary })),
+            }),
+          ),
+        }}
+      />
       {SERVICES.map((service) => (
         <script
           key={service.slug}

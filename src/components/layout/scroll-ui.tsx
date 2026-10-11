@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Icon } from "@/components/icons";
 import { cn } from "@/lib/cn";
 
@@ -49,7 +50,9 @@ export function BackToTop() {
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       aria-label="بازگشت به بالای صفحه"
       className={cn(
-        "fixed bottom-5 end-5 z-[65] grid h-12 w-12 place-items-center rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] text-brand-700 shadow-lift transition-all duration-400 dark:text-brand-200",
+        // در موبایل بالاتر از نوار اقدام شناور می‌نشیند تا با آن هم‌پوشانی نکند؛
+        // env(safe-area-inset-bottom) از نشانگر خانه گوشی‌های ناچ‌دار فاصله می‌گیرد.
+        "fixed bottom-[calc(4.9rem+env(safe-area-inset-bottom,0px))] end-5 z-[65] grid h-12 w-12 place-items-center rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] text-brand-700 shadow-lift transition-all duration-400 sm:bottom-5 dark:text-brand-200",
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0",
       )}
     >
@@ -58,9 +61,16 @@ export function BackToTop() {
   );
 }
 
+/** صفحه‌هایی که خودِ اقدام (ثبت/پیگیری) در آن‌ها هست و نوار شناور اضافی است */
+const ACTION_BAR_HIDDEN_PREFIXES = ["/request", "/track", "/my-requests"];
+
 /** نوار اقدام شناور موبایل (ثبت و پیگیری) */
 export function MobileActionBar() {
   const [visible, setVisible] = useState(false);
+  const pathname = usePathname();
+  const hiddenByPage = ACTION_BAR_HIDDEN_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 420);
@@ -68,10 +78,12 @@ export function MobileActionBar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  if (hiddenByPage) return null;
+
   return (
     <div
       className={cn(
-        "no-print fixed inset-x-3 bottom-3 z-[62] flex gap-2 rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)]/95 p-2 shadow-lift backdrop-blur transition-all duration-400 sm:hidden",
+        "no-print fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] z-[62] flex gap-2 rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)]/95 p-2 shadow-lift backdrop-blur transition-all duration-400 sm:hidden",
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0",
       )}
     >

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SERVICES } from "@/lib/content";
 import { SITE } from "@/lib/content/site";
 import { toFaDigits } from "@/lib/digits";
 
@@ -80,6 +81,12 @@ export function baseMetadata(): Metadata {
     },
     manifest: "/manifest.webmanifest",
     formatDetection: { telephone: true, address: true, email: true },
+    /* نصب روی صفحه اصلی گوشی (PWA) با رفتار بومی در iOS */
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: SITE.shortName,
+    },
   };
 }
 
@@ -159,10 +166,18 @@ export function organizationJsonLd() {
       addressCountry: "IR",
     },
     geo: { "@type": "GeoCoordinates", latitude: SITE.lat, longitude: SITE.lng },
+    hasMap: SITE.mapProfileUrl,
+    sameAs: SITE.social.map((s) => s.url),
     areaServed: [
       { "@type": "City", name: SITE.city },
       { "@type": "AdministrativeArea", name: `استان ${SITE.province}` },
     ],
+    openingHoursSpecification: SITE.hoursSpecification.map((spec) => ({
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: spec.days.map((day) => `https://schema.org/${day}`),
+      opens: spec.opens,
+      closes: spec.closes,
+    })),
     contactPoint: [
       {
         "@type": "ContactPoint",
@@ -175,6 +190,19 @@ export function organizationJsonLd() {
           .map((h) => ({ "@type": "OpeningHoursSpecification", description: `${h.day}: ${h.hours}` })),
       },
     ],
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: `خدمات ${SITE.name}`,
+      itemListElement: SERVICES.map((service) => ({
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: service.title,
+          description: service.summary,
+          url: absolute(`/services/${service.slug}`),
+        },
+      })),
+    },
     knowsAbout: SITE_KEYWORDS.slice(0, 6),
   };
 }
@@ -205,6 +233,36 @@ export function breadcrumbJsonLd(items: Array<{ name: string; href: string }>) {
       position: i + 1,
       name: item.name,
       item: absolute(item.href),
+    })),
+  };
+}
+
+/**
+ * فهرست ساختاریافته (ItemList) — برای صفحه‌های فهرست مانند خدمات و مقالات.
+ * به موتورهای جست‌وجو و موتورهای مولد (GEO) کمک می‌کند ترتیب و اعضای
+ * فهرست را دقیق بفهمند.
+ */
+export function itemListJsonLd({
+  name,
+  items,
+  path,
+}: {
+  name: string;
+  items: Array<{ name: string; href: string; description?: string }>;
+  path?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    ...(path ? { url: absolute(path) } : {}),
+    numberOfItems: items.length,
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      url: absolute(item.href),
+      ...(item.description ? { description: item.description } : {}),
     })),
   };
 }

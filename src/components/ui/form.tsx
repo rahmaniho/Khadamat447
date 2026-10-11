@@ -12,8 +12,11 @@ import { Icon } from "@/components/icons";
 import { cn } from "@/lib/cn";
 import { en } from "@/lib/format";
 
+/* اندازه فونت در موبایل ۱۶px است (text-base) چون iOS Safari هنگام فوکوس
+   روی ورودی کوچک‌تر از ۱۶px صفحه را زوم می‌کند و چیدمان به‌هم می‌ریزد؛
+   در دسکتاپ همان ظاهر فشرده قبلی (text-sm) حفظ می‌شود. */
 const FIELD_BASE =
-  "w-full rounded-2xl border bg-white px-4 text-sm font-medium text-ink-900 transition-all duration-200 placeholder:font-normal placeholder:text-ink-400 hover:border-ink-300 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/12 disabled:cursor-not-allowed disabled:bg-ink-50 dark:bg-white/5 dark:text-white dark:placeholder:text-ink-500 dark:hover:border-white/25 dark:focus:border-brand-400";
+  "w-full rounded-2xl border bg-white px-4 text-base font-medium text-ink-900 transition-all duration-200 placeholder:font-normal placeholder:text-ink-400 hover:border-ink-300 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/12 disabled:cursor-not-allowed disabled:bg-ink-50 sm:text-sm dark:bg-white/5 dark:text-white dark:placeholder:text-ink-500 dark:hover:border-white/25 dark:focus:border-brand-400";
 
 export function Field({
   label,

@@ -14,7 +14,7 @@ export default function NotFound() {
   return (
     <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 py-16">
       <div className="pointer-events-none absolute inset-0 grid-pattern opacity-40 dark:opacity-15" aria-hidden />
-      <div className="pointer-events-none absolute -top-24 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-500/10" aria-hidden />
+      <div className="pointer-events-none absolute -top-24 inset-x-0 mx-auto h-80 w-80 rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-500/10" aria-hidden />
 
       <div className="relative w-full max-w-2xl text-center">
         <Logo size={52} className="justify-center" />

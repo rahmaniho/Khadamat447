@@ -55,7 +55,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       type="button"
       onClick={toggle}
       aria-label={theme === "dark" ? "تغییر به حالت روشن" : "تغییر به حالت تاریک"}
-      className={`grid h-10 w-10 place-items-center rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] text-ink-600 transition-all duration-300 hover:border-brand-300 hover:text-brand-700 dark:text-ink-300 dark:hover:border-brand-400/40 dark:hover:text-brand-200 ${className}`}
+      className={`grid h-11 w-11 place-items-center rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] text-ink-600 transition-all duration-300 hover:border-brand-300 hover:text-brand-700 dark:text-ink-300 dark:hover:border-brand-400/40 dark:hover:text-brand-200 ${className}`}
     >
       <span className="relative grid h-5 w-5 place-items-center">
         <span className={`absolute transition-all duration-400 ${theme === "dark" ? "scale-0 rotate-90 opacity-0" : "scale-100 rotate-0 opacity-100"}`}>
