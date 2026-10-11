@@ -1,219 +1,204 @@
 /**
- * آزمون‌های واحد برای منطق خالص سامانه
- * اجرا: npm test  (node --experimental-strip-types --test)
+ * آزمون‌های واحد سامانه (بدون وابستگی به سرور و پایگاه داده)
+ * اجرا: npm test
  */
-import { test } from "node:test";
 import assert from "node:assert/strict";
-import { normalizePhone, isAnyPhone, maskPhone, newTrackingCode, formatFaDate, toEnDigits, phoneLast4, slugify } from "../src/lib/utils";
-import { renderMarkdown } from "../src/lib/markdown";
-import { detectFileType, sanitizeOriginalName } from "../src/lib/files";
-import { validateServiceFields, validateApplicant } from "../src/lib/validation";
-import { validateSettingValue, fieldByKey } from "../src/lib/settings-validate";
-import { renderTemplate } from "../src/lib/notifications/index";
-import { passwordIssues } from "../src/lib/auth/password";
+import test from "node:test";
 
-test("شماره تماس: یکسان‌سازی اعداد فارسی و پیش‌شماره", () => {
-  assert.equal(normalizePhone("۰۹۱۲ ۳۴۵ ۶۷۸۹"), "09123456789");
-  assert.equal(normalizePhone("+989123456789"), "09123456789");
-  assert.equal(normalizePhone("00989123456789"), "09123456789");
-  assert.equal(normalizePhone("9123456789"), "09123456789");
-  assert.equal(isAnyPhone("09398520150"), true);
-  assert.equal(isAnyPhone("02833992550"), true);
-  assert.equal(isAnyPhone("12345"), false);
-  assert.equal(isAnyPhone("abc"), false);
-  assert.equal(phoneLast4("۰۹۱۲۳۴۵۶۷۸۹"), "6789");
+import {
+  en,
+  fa,
+  faBytes,
+  faDuration,
+  faNumber,
+  formatDate,
+  g2j,
+  isMobile,
+  isPhone,
+  maskPhone,
+  normalizeFa,
+  normalizePhone,
+  phoneLast4,
+  readingTime,
+  stripMarkdown,
+  timeAgo,
+  truncateText,
+} from "../src/lib/format";
+import { ARTICLES, FAQS, SERVICES, getArticle, getRelatedArticles, getService, searchFullText } from "../src/lib/content";
+import { SERVICES_SEED, FIELDS_SEED } from "../src/lib/content/catalog";
+import { SITE, SERVICE_UI, NAV } from "../src/lib/content/site";
+import {
+  DEMO_CREDENTIALS,
+  buildSeed,
+  buildStats,
+  codeFromIndex,
+  randomTrackingCode,
+} from "../src/lib/store/seed";
+import { PERMISSIONS } from "../src/lib/store/store";
+import { STATUS_META, STATUS_ORDER } from "../src/lib/store/types";
+
+/* ------------------------------ اعداد و متن ------------------------------ */
+
+test("تبدیل ارقام فارسی و لاتین", () => {
+  assert.equal(fa(1404), "۱۴۰۴");
+  assert.equal(en("۱۴۰۴/۰۷/۱۹"), "1404/07/19");
+  assert.equal(faNumber(1234567), "۱٬۲۳۴٬۵۶۷");
+  assert.equal(faNumber(1234.5, 1), "۱٬۲۳۴.۵");
+  assert.equal(faBytes(5 * 1024 * 1024), "۵.۰ مگابایت");
 });
 
-test("نمایش ناقص شماره در عمومی", () => {
-  const m = maskPhone("09123456789");
-  assert.ok(!m.includes("3456"), "ارقام میانی نباید نمایش داده شوند");
-  assert.ok(m.endsWith("789"));
+test("نرمال‌سازی متن فارسی برای جست‌وجو", () => {
+  assert.equal(normalizeFa("کارت  بهداشتِي"), normalizeFa("کارت بهداشتی"));
+  assert.equal(normalizeFa("آموزش‌ها، کارت!"), "اموزشها کارت");
+  assert.equal(normalizeFa("كارت بهداشت"), normalizeFa("کارت بهداشت"));
+  assert.ok(normalizeFa("کد پیگیری").includes("پیگیری"));
 });
 
-test("کد پیگیری: قالب ثابت و بدون کاراکترهای مبهم", () => {
-  for (let i = 0; i < 200; i++) {
-    const c = newTrackingCode();
-    assert.match(c, /^K447-[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}$/);
-    assert.ok(!/[01IO]/.test(c.slice(4)), "کاراکتر مبهم در کد");
+test("حذف مارک‌داون و شمارش زمان مطالعه", () => {
+  const md = "## سرتیتر\n\n- **مورد** اول\n- مورد دوم\n\n> نقل‌قول مهم";
+  assert.equal(stripMarkdown(md), "سرتیتر مورد اول مورد دوم نقل‌قول مهم");
+  const rt = readingTime("واژه ".repeat(380));
+  assert.equal(rt.minutes, 2);
+});
+
+test("کوتاه‌سازی متن", () => {
+  assert.equal(truncateText("الف ب پ ت ث", 5), "الف…");
+  assert.equal(truncateText("کوتاه", 20), "کوتاه");
+});
+
+/* -------------------------------- تاریخ -------------------------------- */
+
+test("تبدیل تاریخ میلادی به شمسی", () => {
+  assert.deepEqual(g2j(2025, 10, 11), [1404, 7, 19]);
+  assert.deepEqual(g2j(2024, 3, 20), [1403, 1, 1]);
+  assert.equal(formatDate("2025-10-11T09:30:00.000Z", "medium"), "۱۹ مهر ۱۴۰۴");
+  assert.equal(formatDate("2025-10-11T09:30:00.000Z", "time").length > 0, true);
+  assert.equal(formatDate(null), "—");
+});
+
+test("زمان نسبی", () => {
+  const now = new Date("2026-01-01T12:00:00.000Z");
+  assert.equal(timeAgo("2026-01-01T09:00:00.000Z", now), "۳ ساعت پیش");
+  assert.equal(timeAgo("2025-12-31T12:00:00.000Z", now), "۱ روز پیش");
+  assert.equal(timeAgo("2026-01-01T11:59:40.000Z", now), "همین حالا");
+  assert.equal(faDuration(2 * 86_400_000 + 3 * 3_600_000), "۲ روز و ۳ ساعت");
+});
+
+/* ------------------------------- تماس‌ها ------------------------------- */
+
+test("نرمال‌سازی و اعتبارسنجی شماره تماس", () => {
+  assert.equal(normalizePhone("+98 912 123 4567"), "09121234567");
+  assert.equal(normalizePhone("۰۹۳۹-۸۵۲-۰۱۵۰"), "09398520150");
+  assert.equal(isMobile("09121234567"), true);
+  assert.equal(isMobile("02833992550"), false);
+  assert.equal(isPhone("02833992550"), true);
+  assert.equal(phoneLast4("09121234567"), "4567");
+  assert.equal(maskPhone("09121234567"), "۰۹۱۲****۵۶۷");
+});
+
+/* ------------------------------- محتوا -------------------------------- */
+
+test("ساختار خدمات، پرسش‌ها و مقالات", () => {
+  assert.equal(SERVICES.length, SERVICES_SEED.length);
+  assert.equal(SERVICES.length >= 5, true);
+  for (const service of SERVICES) {
+    assert.ok(service.title.length > 5, `عنوان خدمت ${service.slug} ناقص است`);
+    assert.ok(service.fields.length > 0, `خدمت ${service.slug} فیلد اختصاصی ندارد`);
+    assert.ok(SERVICE_UI[service.slug], `اطلاعات ظاهری خدمت ${service.slug} تعریف نشده است`);
+    assert.ok(getService(service.slug)?.slug === service.slug);
   }
-  const set = new Set(Array.from({ length: 500 }, () => newTrackingCode()));
-  assert.equal(set.size, 500, "کدها باید تقریباً یکتا باشند");
+  assert.equal(FAQS.length, 9);
+  assert.ok(ARTICLES.length >= 13, "تعداد مقالات کمتر از انتظار است");
+  assert.equal(new Set(ARTICLES.map((a) => a.slug)).size, ARTICLES.length, "اسلاگ مقاله‌ها تکراری است");
+  assert.ok(getArticle("health-card-what-is-who-needs"));
+  assert.equal(getRelatedArticles("health-card-what-is-who-needs").length, 3);
 });
 
-test("تاریخ شمسی: ۱۰ اکتبر ۲۰۲۶ = ۱۸ مهر ۱۴۰۵", () => {
-  const out = formatFaDate("2026-10-10T08:30:00.000Z", false);
-  assert.equal(out, "۱۸ مهر ۱۴۰۵");
-});
-
-test("تبدیل ارقام فارسی به انگلیسی", () => {
-  assert.equal(toEnDigits("۱۴۰۵/۰۷"), "1405/07");
-  assert.equal(toEnDigits("٠١٢"), "012");
-});
-
-test("اسلاگ فارسی و لاتین", () => {
-  assert.equal(slugify("  Health Card: Guide! "), "health-card-guide");
-});
-
-test("Markdown: HTML خام و اسکریپت escape می‌شود (ضد XSS)", () => {
-  const html = renderMarkdown('<script>alert(1)</script> **بold** [x](javascript:alert(1)) [ok](https://example.com)');
-  assert.ok(!html.includes("<script>"));
-  assert.ok(html.includes("&lt;script&gt;"));
-  assert.ok(!/href="javascript:/i.test(html), "لینک javascript نباید رندر شود");
-  assert.ok(html.includes('href="https://example.com"'));
-  assert.ok(html.includes("<strong>"));
-});
-
-test("Markdown: فهرست‌ها و نقل‌قول", () => {
-  const html = renderMarkdown("## عنوان\n\n- یک\n- دو\n\n> توجه");
-  assert.ok(html.includes("<h3>عنوان</h3>"));
-  assert.ok(html.includes("<ul>"));
-  assert.ok(html.includes("<blockquote>"));
-});
-
-test("بررسی نوع واقعی فایل: PDF و تصویر پذیرفته، اجرایی رد می‌شود", () => {
-  const pdf = Buffer.concat([Buffer.from("%PDF-1.4\n"), Buffer.alloc(32)]);
-  const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(16)]);
-  const jpg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(16)]);
-  const exe = Buffer.concat([Buffer.from("MZ"), Buffer.alloc(32)]);
-  assert.equal(detectFileType(pdf, "a.pdf").ok, true);
-  assert.equal(detectFileType(png, "a.png").ok, true);
-  assert.equal(detectFileType(jpg, "a.jpg").ok, true);
-  assert.equal(detectFileType(exe, "a.pdf").ok, false, "فایل اجرایی با پسوند جعلی رد شود");
-  assert.equal(detectFileType(pdf, "a.png").ok, false, "عدم تطابق پسوند و محتوا رد شود");
-});
-
-test("نام فایل: مسیر و کاراکترهای خطرناک حذف می‌شوند", () => {
-  const n = sanitizeOriginalName("../../etc/passwd<>.pdf");
-  assert.ok(!n.includes("/") && !n.includes("..") && !n.includes("<"));
-  assert.equal(sanitizeOriginalName(""), "file");
-});
-
-test("اعتبارسنجی متقاضی: ایمیل فقط در صورت انتخاب ایمیل الزامی است", () => {
-  const base = {
-    clientSubmissionId: "abcdefgh12345",
-    serviceSlug: "health-card",
-    requesterType: "person",
-    fullName: "علی احمدی",
-    phone: "۰۹۱۲۱۲۳۴۵۶۷",
-    email: "",
-    city: "قزوین",
-    orgName: "",
-    preferredContact: "phone",
-    message: "",
-    consentAccuracy: true,
-    consentPrivacy: true,
-  };
-  const ok = validateApplicant(base);
-  assert.equal(ok.ok, true);
-  if (ok.ok) assert.equal(ok.data.phoneNormalized, "09121234567");
-  const noEmail = validateApplicant({ ...base, preferredContact: "email" });
-  assert.equal(noEmail.ok, false);
-  const noConsent = validateApplicant({ ...base, consentPrivacy: false });
-  assert.equal(noConsent.ok, false);
-  const badPhone = validateApplicant({ ...base, phone: "123" });
-  assert.equal(badPhone.ok, false);
-});
-
-test("فیلدهای خدمت: الزامی، گزینه‌های مجاز و عدد", () => {
-  const defs = [
-    { id: "1", field_key: "request_kind", label: "نوع", type: "select", options_json: JSON.stringify(["جدید", "تمدید"]), required: 1 },
-    { id: "2", field_key: "count", label: "تعداد", type: "number", options_json: "[]", required: 0 },
-  ];
-  assert.equal(validateServiceFields(defs, {}).ok, false);
-  assert.equal(validateServiceFields(defs, { request_kind: "نامعتبر" }).ok, false);
-  assert.equal(validateServiceFields(defs, { request_kind: "جدید", count: "abc" }).ok, false);
-  const good = validateServiceFields(defs, { request_kind: "جدید", count: "۳" });
-  assert.equal(good.ok, true);
-  if (good.ok) assert.equal(good.fields.find((f) => f.key === "count")?.value, "3");
-  // کلیدهای ناشناخته پذیرفته نمی‌شوند (فقط فیلدهای تعریف‌شده خوانده می‌شوند)
-  const extra = validateServiceFields(defs, { request_kind: "جدید", injected: "x" });
-  assert.equal(extra.ok && extra.fields.some((f) => f.key === "injected"), false);
-});
-
-test("تنظیمات: فقط مقادیر معتبر ذخیره می‌شوند", () => {
-  const url = fieldByKey("business.map_url")!;
-  assert.equal(validateSettingValue(url, "javascript:alert(1)").ok, false);
-  assert.equal(validateSettingValue(url, "https://www.google.com/maps?q=36.2,50.0").ok, true);
-  const ext = fieldByKey("form.allowed_extensions")!;
-  assert.equal(validateSettingValue(ext, ".pdf,.exe").ok, false, "exe نباید مجاز شود");
-  assert.equal(validateSettingValue(ext, ".pdf, .PNG").ok, true);
-  const hours = fieldByKey("business.hours_json")!;
-  assert.equal(validateSettingValue(hours, "[]").ok, true);
-  assert.equal(validateSettingValue(hours, "{bad").ok, false);
-  const social = fieldByKey("business.social_json")!;
-  assert.equal(validateSettingValue(social, '[{"label":"x","url":"http://insecure"}]').ok, false);
-  const maxMb = fieldByKey("form.max_file_mb")!;
-  assert.equal(validateSettingValue(maxMb, "500").ok, false);
-});
-
-test("قالب اعلان: جایگزینی متغیرها و بدون افشای متغیر ناشناخته", () => {
-  const out = renderTemplate("کد: {tracking_code} - {service} - {unknown}", { tracking_code: "K447-ABCDE-FGHJ", service: "کارت بهداشت" });
-  assert.equal(out, "کد: K447-ABCDE-FGHJ - کارت بهداشت - ");
-});
-
-test("رمز عبور: حداقل طول و ترکیب", () => {
-  assert.ok(passwordIssues("short").length > 0);
-  assert.equal(passwordIssues("LongPassword2026").length, 0);
-});
-
-/* ---------------- ساعات کاری، FAQ مقاله‌ها و محتوای خدمات ---------------- */
-import { parseHoursRange, localBusinessJsonLd, absoluteAsset } from "../src/lib/seo";
-import { extractFaqPairs } from "../src/lib/markdown";
-import { ARTICLE_PACK } from "../src/lib/db/articles-content";
-import { SETTING_DEFAULTS, HOURS_DEFAULT_JSON, OFFICE_EMAIL_DEFAULT, SITE_URL_DEFAULT } from "../src/lib/settings";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-
-test("ساعات کاری: تبدیل «۰۸:۰۰ تا ۱۶» به ساعت ISO", () => {
-  assert.deepEqual(parseHoursRange("۰۸:۰۰ تا ۱۶:۰۰"), { opens: "08:00", closes: "16:00" });
-  assert.deepEqual(parseHoursRange("8 - 16"), { opens: "08:00", closes: "16:00" });
-  assert.equal(parseHoursRange("بدون ساعت مشخص"), null);
-});
-
-test("ساعات کاری پیش‌فرض دفتر ۸ تا ۱۶ است و در JSON-LD دیده می‌شود", () => {
-  const hours = JSON.parse(HOURS_DEFAULT_JSON);
-  assert.equal(hours[0].hours, "۰۸:۰۰ تا ۱۶:۰۰");
-  assert.equal(SETTING_DEFAULTS["business.hours_json"], HOURS_DEFAULT_JSON);
-  const site = {
-    name: "x", city: "قزوین", province: "قزوین", address: "a", addressFull: "a", lat: 36.2, lng: 50.0,
-    mapUrl: "", mapProfileUrl: "", phone1: "09398520150", phone2: "", hours, social: [], publicEmail: "", siteUrl: "https://khadamat447.ir",
-    homeTitle: "", homeDescription: "", dataDisclaimer: "", footerNote: "", retentionDays: "", privacyMd: "", termsMd: "", aboutMd: "", slogan: "", description: "", shortName: "",
-  } as never;
-  const ld = localBusinessJsonLd(site) as { openingHoursSpecification: Array<{ opens: string; closes: string }> };
-  assert.equal(ld.openingHoursSpecification[0].opens, "08:00");
-  assert.equal(ld.openingHoursSpecification[0].closes, "16:00");
-});
-
-test("ایمیل رسمی و دامنه پیش‌فرض همان مقدارهای اعلام‌شده هستند", () => {
-  assert.equal(OFFICE_EMAIL_DEFAULT, "Info@Khadamat447.IR");
-  assert.equal(SITE_URL_DEFAULT, "https://khadamat447.ir");
-  assert.equal(absoluteAsset({ siteUrl: SITE_URL_DEFAULT } as never, "/brand/logo-mark.png"), "https://khadamat447.ir/brand/logo-mark.png");
-});
-
-test("استخراج پرسش و پاسخ از بخش «پرسش‌های متداول» مقاله", () => {
-  const md = "## پاسخ کوتاه\n\nمتن\n\n## پرسش‌های متداول\n\n### سؤال یک؟\n\nپاسخ **یک**.\n\n### سؤال دو؟\n\nپاسخ دو.\n";
-  const pairs = extractFaqPairs(md);
-  assert.equal(pairs.length, 2);
-  assert.equal(pairs[0].question, "سؤال یک؟");
-  assert.equal(pairs[0].answer, "پاسخ یک.");
-});
-
-test("مقاله‌های خدمات: دو مقاله برای هر خدمت، تصویر موجود و بدون ادعای ممنوع", () => {
-  const services = ["health-card", "health-training", "health-qualification", "audit-contracts"];
-  for (const svc of services) {
-    const count = ARTICLE_PACK.filter((a) => a.related.includes(svc)).length;
-    assert.equal(count, 2, `خدمت ${svc} باید دو مقاله داشته باشد`);
+test("فیلدهای فرم هر خدمت مطابق seed است", () => {
+  const totalFields = SERVICES.reduce((sum, s) => sum + s.fields.length, 0);
+  assert.equal(totalFields, FIELDS_SEED.length);
+  for (const field of FIELDS_SEED) {
+    assert.ok(SERVICES.some((s) => s.slug === field.service), `خدمت ${field.service} برای فیلد وجود ندارد`);
   }
-  assert.equal(ARTICLE_PACK.length, 8);
-  const slugs = new Set(ARTICLE_PACK.map((a) => a.slug));
-  assert.equal(slugs.size, ARTICLE_PACK.length, "نامک‌ها باید یکتا باشند");
-  for (const a of ARTICLE_PACK) {
-    assert.ok(existsSync(join(process.cwd(), "public/images/articles", a.cover)), `تصویر ${a.cover} وجود ندارد`);
-    assert.ok(extractFaqPairs(a.body).length >= 2, `مقاله ${a.slug} باید حداقل دو پرسش متداول داشته باشد`);
-    assert.ok(/^## پاسخ کوتاه/m.test(a.body), `مقاله ${a.slug} باید پاسخ کوتاه داشته باشد`);
-    assert.ok(a.seo_title.includes("قزوین"), `عنوان سئوی ${a.slug} باید نام شهر را داشته باشد`);
-    for (const banned of ["تضمین مجوز", "تأیید صددرصدی"]) {
-      assert.ok(!a.body.includes(banned), `مقاله ${a.slug} نباید عبارت «${banned}» داشته باشد`);
-    }
+});
+
+test("جست‌وجوی متن کامل", () => {
+  const results = searchFullText("کارت بهداشت");
+  assert.ok(results.total > 0, "نتیجه‌ای برای کارت بهداشت یافت نشد");
+  assert.ok(results.groups.service.length > 0, "خدمت مرتبط پیدا نشد");
+  const empty = searchFullText("ا");
+  assert.equal(empty.total, 0, "کوئری کوتاه نباید نتیجه بدهد");
+});
+
+test("اطلاعات تماس دفتر در محتوا صحیح است", () => {
+  assert.equal(SITE.city, "قزوین");
+  assert.ok(SITE.phones.some((p) => p.value === "09398520150"));
+  assert.ok(SITE.phones.some((p) => p.value === "02833992550"));
+  assert.ok(SITE.email.toLowerCase().includes("khadamat447"));
+  assert.ok(NAV.some((item) => item.href === "/request"));
+});
+
+/* -------------------------------- فروشگاه -------------------------------- */
+
+test("کد پیگیری یکتا و با قالب درست تولید می‌شود", () => {
+  const code = randomTrackingCode();
+  assert.match(code, /^K447-[A-Z2-9]{5}-[A-Z2-9]{5}$/);
+  const codes = new Set(Array.from({ length: 300 }, (_, i) => codeFromIndex(i)));
+  assert.equal(codes.size, 300, "کدهای تولیدشده تکراری هستند");
+});
+
+test("داده اولیه نمایشی ساختار درستی دارد", () => {
+  const state = buildSeed(new Date("2026-10-11T06:30:00.000Z"));
+  assert.ok(state.requests.length >= 25, "تعداد درخواست‌های نمایشی کم است");
+  assert.equal(state.services.length, SERVICES.length);
+  assert.ok(state.users.some((u) => u.role === "owner"));
+  assert.equal(state.session?.userId, "usr-0001");
+
+  for (const request of state.requests) {
+    assert.match(request.trackingCode, /^K447-[A-Z2-9]{5}-[A-Z2-9]{5}$/);
+    assert.ok(STATUS_META[request.status], `وضعیت نامعتبر: ${request.status}`);
+    assert.ok(request.timeline.length >= 1, "هر درخواست باید حداقل یک رویداد داشته باشد");
+    assert.ok(request.answers.length > 0, "پاسخ‌های فرم خدمت خالی است");
+  }
+  assert.equal(new Set(state.requests.map((r) => r.trackingCode)).size, state.requests.length);
+});
+
+test("آمار پیشخوان درست محاسبه می‌شود", () => {
+  const now = new Date("2026-10-11T06:30:00.000Z");
+  const state = buildSeed(now);
+  const stats = buildStats(state, now);
+  assert.equal(stats.total, state.requests.length);
+  const byStatusSum = STATUS_ORDER.reduce((sum, key) => sum + stats.byStatus[key], 0) + stats.byStatus.rejected;
+  assert.equal(byStatusSum, stats.total, "جمع وضعیت‌ها با کل درخواست‌ها برابر نیست");
+  assert.equal(stats.last7Days.length, 7);
+  assert.ok(stats.byService.length === state.services.length);
+  assert.ok(stats.completionRate >= 0 && stats.completionRate <= 100);
+  assert.ok(stats.satisfaction !== null && stats.satisfaction >= 1 && stats.satisfaction <= 5);
+});
+
+test("اعلان‌ها و سابقه رویداد برای درخواست‌ها ساخته می‌شود", () => {
+  const state = buildSeed(new Date("2026-10-11T06:30:00.000Z"));
+  assert.ok(state.notifications.length > 10);
+  assert.ok(state.notifications.some((n) => n.status === "failed"));
+  assert.ok(state.audit.length >= 5);
+  assert.ok(state.announcements.some((a) => a.active));
+});
+
+/* ------------------------------- دسترسی‌ها ------------------------------- */
+
+test("ماتریس دسترسی نقش‌ها منطقی است", () => {
+  assert.ok(PERMISSIONS.owner.includes("users.manage"));
+  assert.ok(!PERMISSIONS.reviewer.includes("users.manage"));
+  assert.ok(!PERMISSIONS.content.includes("requests.manage"));
+  assert.ok(PERMISSIONS.support.includes("requests.view"));
+  assert.equal(DEMO_CREDENTIALS.password.length >= 6, true);
+});
+
+/* --------------------------------- قواعد --------------------------------- */
+
+test("همه خدمات فعال حداقل یک مقدار نمایشی دارند", () => {
+  for (const service of SERVICES) {
+    assert.ok(service.highlights.length >= 3, `خدمت ${service.slug} نکته کلیدی ندارد`);
+    assert.ok(service.documentsCount > 0 || /other/.test(service.slug), `فهرست مدارک ${service.slug} خالی است`);
   }
 });

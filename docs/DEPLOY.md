@@ -1,48 +1,94 @@
 # استقرار (Deployment)
 
-> **وضعیت:** میزبان نهایی هنوز انتخاب نشده است. پیش از انتخاب، موارد زیر را بررسی کنید: دسترسی از شبکه ایران، پشتیبانی Node.js ۲۲، امکان اجرای فرایند دائمی و دیسک پایدار برای `.data/uploads`، امکان HTTPS و امکان پشتیبان‌گیری.
+> این پروژه هیچ وابستگی سروری ندارد: نه پایگاه داده، نه API، نه متغیر محیطی اجباری.
+> کل منطق در مرورگر اجرا می‌شود و خروجی می‌تواند کاملاً استاتیک باشد.
 
-## گزینه‌های پیشنهادی
-1. **سرور مجازی (VPS) با Node.js + Reverse Proxy (Nginx/Caddy)** — ساده‌ترین مسیر با کنترل کامل روی فایل‌ها و پشتیبان‌ها. SQLite برای حجم فعلی کافی است.
-2. **PostgreSQL** روی سرویس مدیریت‌شده یا همان سرور (توصیه برای محیط عملیاتی با چند نمونه برنامه).
-3. ارائه‌دهندگان PaaS: باید پیش از انتخاب، پشتیبانی از **دیسک پایدار** (برای مدارک) و دسترسی شبکه بررسی شود؛ میزبانی بدون دیسک پایدار برای این سامانه مناسب نیست.
+---
 
-## مراحل VPS (نمونه)
+## ۱. Vercel (پیشنهادی — سریع‌ترین مسیر)
+
+### الف) از داشبورد
+1. وارد [vercel.com/new](https://vercel.com/new) شوید و مخزن GitHub را انتخاب کنید.
+2. تنظیمات را تغییر ندهید (Framework: **Next.js**، Build Command: `npm run build`، Node 22).
+3. **Deploy** را بزنید. کمتر از یک دقیقه، سایت روی `https://<project>.vercel.app` بالا می‌آید.
+
+### ب) با CLI
 ```bash
-# Node 22 و Caddy/Nginx نصب شده باشند
-git pull && npm ci && npm run build
-# .env را با مقادیر واقعی بسازید (SESSION_SECRET، DATABASE_URL، NEXT_PUBLIC_SITE_URL، ...)
-npm start   # یا با systemd/pm2 به‌عنوان سرویس اجرا شود
+npm i -g vercel        # یک‌بار
+vercel                 # پیش‌نمایش
+vercel --prod          # انتشار نهایی
 ```
-Reverse proxy باید HTTPS را پایان دهد و `X-Forwarded-For` را ارسال کند (برای محدودیت نرخ و هش IP).
 
-نمونه Caddy:
+### متغیرهای محیطی (اختیاری)
+| نام | توضیح | پیش‌فرض |
+|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | دامنه نهایی برای `canonical`، `sitemap.xml` و Open Graph | `https://khadamat447.ir` |
+
+میان‌بر: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/rahmaniho/Khadamat447)
+
+---
+
+## ۲. GitHub Pages (استاتیک)
+
+```bash
+bash scripts/build-static.sh     # → out/ با basePath=/Khadamat447
 ```
-example.org {
-  reverse_proxy 127.0.0.1:3000
-}
+
+گردش‌کار آماده در `.github/workflows/deploy-pages.yml`:
+- روی هر push به شاخه `main` (یا اجرای دستی `workflow_dispatch`) اجرا می‌شود
+- `STATIC_EXPORT=true` را تنظیم و خروجی را در `out/` می‌سازد
+- فایل `.nojekyll` را اضافه می‌کند و روی Pages منتشر می‌کند
+
+آدرس نهایی: `https://<user>.github.io/Khadamat447/`
+
+> نکته: در حالت استاتیک، `basePath` روی `/Khadamat447` تنظیم می‌شود. اگر روی دامنهٔ
+> اختصاصی منتشر می‌کنید، `basePath` را در `next.config.ts` خالی کنید.
+
+پیش‌نیاز یک‌باره در تنظیمات مخزن: **Settings → Pages → Source: GitHub Actions**.
+
+---
+
+## ۳. هر میزبان فایل ایستا (Netlify، Cloudflare Pages، هاست ساده، …)
+
+```bash
+STATIC_EXPORT=true npx next build      # خروجی: out/
 ```
-(دامنه نمونه است؛ دامنه واقعی را جایگزین کنید.)
+پوشه `out/` را روی میزبان آپلود کنید. هیچ فرایند Node لازم نیست.
+در Netlify/Cloudflare Pages تنظیمات زیر کافی است:
 
-## PostgreSQL
-1. ساخت پایگاه داده و کاربر با حداقل دسترسی.
-2. `DATABASE_URL=postgres://...` را تنظیم کنید؛ در اولین اجرا جدول‌ها خودکار ساخته می‌شوند (`src/lib/db/schema.sql`).
-3. **هشدار:** درایور PostgreSQL در این پروژه پیاده‌سازی شده اما در محیط آزمون نهایی با یک سرور PostgreSQL واقعی اجرا نشده است. پیش از بهره‌برداری، یک بار با داده نمونه آزمایش کنید.
-4. پشتیبان با `pg_dump` روزانه و نگهداری خارج از سرور.
+| تنظیم | مقدار |
+|---|---|
+| Build command | `bash scripts/build-static.sh` (یا `STATIC_EXPORT=true npx next build`) |
+| Publish directory | `out` |
 
-## ایمیل
-- **Resend:** `RESEND_API_KEY` و `MAIL_FROM` (دامنه باید در Resend احراز شود). پلن رایگان محدودیت ارسال و منطقه دارد؛ پیش از تکیه، شرایط جاری را بررسی کنید.
-- **SMTP سازمانی:** `SMTP_HOST`، `SMTP_PORT`، `SMTP_USER`، `SMTP_PASS`، `MAIL_FROM`.
-- ایمیل مدیر فقط شامل کد پیگیری، نوع خدمت و زمان است؛ مدارک و اطلاعات حساس هرگز ارسال نمی‌شوند.
-- اعلان‌های ناموفق در پنل **اعلان‌ها** نمایش داده می‌شوند و با دکمه «ارسال مجدد» دوباره ارسال می‌شوند.
+---
 
-## دامنه و سئو پس از استقرار
-1. `NEXT_PUBLIC_SITE_URL` را روی دامنه واقعی (https) تنظیم کنید.
-2. sitemap در `/sitemap.xml` و robots در `/robots.txt` قرار دارند؛ آدرس sitemap را در Google Search Console ثبت کنید.
-3. در Google Search Console و PageSpeed Insights صفحه اصلی و یک صفحه خدمت را بررسی کنید.
-4. ابزار تحلیل (Analytics) و کد تأیید Search Console **عمداً فعال نشده‌اند**؛ پیش از افزودن، الزامات رضایت کاربر و حریم خصوصی را بررسی کنید.
+## ۴. پس از استقرار (سئو و بررسی)
 
-## پشتیبان‌گیری و بازیابی
-- SQLite: `npm run db:backup` را روزانه با cron اجرا کنید و خروجی را خارج از سرور نگه دارید.
-- مدارک: پوشه `STORAGE_DIR` (یا `.data/uploads`) را همراه پشتیبان پایگاه داده نگه دارید.
-- بازیابی: فایل پشتیبان را جایگزین `khadamat447.db` کنید و سرویس را دوباره اجرا کنید؛ سپس یک درخواست نمونه را در پیگیری بررسی کنید.
+1. `NEXT_PUBLIC_SITE_URL` را با دامنهٔ واقعی تنظیم کنید و دوباره منتشر کنید.
+2. `/sitemap.xml` و `/robots.txt` را باز کنید و دامنه را بررسی کنید.
+3. آدرس سایت را در [Google Search Console](https://search.google.com/search-console) ثبت و نقشه سایت را معرفی کنید.
+4. داده ساختاریافته را با [Rich Results Test](https://search.google.com/test/rich-results) بیازمایید
+   (سازمان، خدمات، مقالات، پرسش‌های متداول).
+5. صفحه‌های `/admin`، `/track` و `/search` با `noindex` و سرصفحه‌های امنیتی محافظت می‌شوند؛ پس از استقرار بررسی کنید.
+6. برای امتیاز ظاهری و سرعت: `Images` از فرمت `webp` استفاده می‌کند و فونت به‌صورت محلی سرو می‌شود.
+
+---
+
+## ۵. دامنه و HTTPS
+
+- در Vercel/Netlify/Cloudflare، دامنه را از بخش Domains اضافه کنید و رکوردهای DNS را مطابق راهنمای میزبان تنظیم کنید.
+- HTTPS به‌صورت خودکار صادر می‌شود؛ در هاست ساده از Let's Encrypt (Certbot) استفاده کنید.
+- پس از اتصال دامنه، مقدار `NEXT_PUBLIC_SITE_URL` را به‌روزرسانی کنید تا `canonical`ها درست شوند.
+
+---
+
+## ۶. نسخه پشتیبان داده‌ها
+
+داده‌های نمایشی در مرورگر بازدیدکننده ذخیره می‌شوند. برای گرفتن نسخه پشتیبان:
+
+- پیشخوان → **تنظیمات** → «دریافت فایل پشتیبان» (JSON کامل)
+- پیشخوان → **سابقه رویدادها** → «خروجی JSON»
+- کارتابل درخواست‌ها → «خروجی CSV»
+
+برای بازگردانی، فایل JSON را نگه دارید؛ ساختار آن با `src/lib/store/types.ts` (`AppState`) مطابقت دارد.

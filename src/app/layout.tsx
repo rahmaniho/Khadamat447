@@ -1,38 +1,41 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Providers } from "@/components/providers";
+import { baseMetadata, jsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
+import { SITE } from "@/lib/content/site";
 
-// در حالت static export نباید dynamic باشد؛ در حالت عادی (dev/server) نیازی نیست چون صفحات خودشان dynamic اند
-// اما برای سازگاری با build، فقط در حالت non-static اعمال می‌شود
-// (نگه داشتن layout ریشه dynamic باعث شکست static export می‌شود)
+export const metadata: Metadata = baseMetadata();
 
 export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f9f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#071110" },
+  ],
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0f766e",
+  maximumScale: 5,
+  colorScheme: "light dark",
 };
 
-export const metadata: Metadata = {
-  title: {
-    default: "دفتر خدمات سلامت ۴۷۷ قزوین | ثبت درخواست آنلاین",
-    template: "%s | دفتر خدمات سلامت ۴۷۷",
-  },
-  description:
-    "معرفی خدمات دفتر خدمات سلامت ۴۷۷ در قزوین؛ مشاهده خدمات کارت بهداشت، آموزش بهداشت اصناف، صلاحیت بهداشت و ممیزی، همراه با ثبت درخواست آنلاین.",
-  applicationName: "دفتر خدمات سلامت ۴۷۷",
-  formatDetection: { telephone: false },
-};
-
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fa" dir="rtl">
-      <body className="min-h-screen antialiased">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:right-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-white focus:px-4 focus:py-2 focus:shadow-lg"
-        >
-          رفتن به محتوای اصلی
-        </a>
-        {children}
+    <html lang="fa" dir="rtl" suppressHydrationWarning>
+      <head>
+        <link rel="preload" href="/fonts/Vazirmatn-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <script
+          type="application/ld+json"
+          // داده ساختاریافته سازمان، وب‌سایت و اطلاعات تماس
+          dangerouslySetInnerHTML={{ __html: jsonLd(organizationJsonLd()) }}
+        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(websiteJsonLd()) }} />
+        <meta name="author" content={SITE.name} />
+        <meta name="geo.region" content="IR-26" />
+        <meta name="geo.placename" content={SITE.city} />
+        <meta name="geo.position" content={`${SITE.lat};${SITE.lng}`} />
+        <meta name="ICBM" content={`${SITE.lat}, ${SITE.lng}`} />
+      </head>
+      <body className="min-h-dvh antialiased">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -1,26 +1,56 @@
 import type { MetadataRoute } from "next";
-import { loadSite } from "@/lib/site";
-import { getActiveServices, getPublishedArticles } from "@/lib/queries";
-import { IS_STATIC } from "@/lib/static-data";
+import { ARTICLES, FAQS, SERVICES } from "@/lib/content";
+import { absolute } from "@/lib/seo";
 
-// در حالت dev/server، sitemap در هر درخواست تولید می‌شود.
-// در حالت static export نیز force-static سازگار است.
 export const dynamic = "force-static";
 
-/** sitemap: فقط صفحات عمومی؛ پنل مدیریت، پیگیری، جست‌وجو و صفحات فرم خصوصی حذف شده‌اند */
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const site = await loadSite();
-  // در حالت static از basePath استفاده می‌کنیم تا URL ها صحیح باشند
-  const baseFromEnv = process.env.NEXT_PUBLIC_SITE_URL || site.siteUrl;
-  const base = IS_STATIC
-    ? (baseFromEnv || "https://rahmaniho.github.io/Khadamat447")
-    : baseFromEnv || site.siteUrl;
-  const [services, articles] = await Promise.all([getActiveServices(), getPublishedArticles()]);
+const STATIC_ROUTES: Array<{ path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] }> = [
+  { path: "/", priority: 1, changeFrequency: "weekly" },
+  { path: "/services", priority: 0.95, changeFrequency: "weekly" },
+  { path: "/request", priority: 0.9, changeFrequency: "monthly" },
+  { path: "/track", priority: 0.6, changeFrequency: "monthly" },
+  { path: "/guide", priority: 0.8, changeFrequency: "monthly" },
+  { path: "/faq", priority: 0.8, changeFrequency: "monthly" },
+  { path: "/articles", priority: 0.8, changeFrequency: "weekly" },
+  { path: "/about", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/contact", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/status", priority: 0.4, changeFrequency: "daily" },
+  { path: "/privacy", priority: 0.3, changeFrequency: "yearly" },
+  { path: "/terms", priority: 0.3, changeFrequency: "yearly" },
+];
+
+export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-  const staticPages = ["/", "/services", "/request", "/articles", "/faq", "/about", "/contact", "/guide", "/privacy", "/terms"];
   return [
-    ...staticPages.map((p) => ({ url: `${base}${p}`, lastModified: now, changeFrequency: "weekly" as const, priority: p === "/" ? 1 : 0.7 })),
-    ...services.map((s) => ({ url: `${base}/services/${s.slug}`, lastModified: new Date(s.updated_at), changeFrequency: "monthly" as const, priority: 0.9 })),
-    ...articles.map((a) => ({ url: `${base}/articles/${a.slug}`, lastModified: new Date(a.updated_at), changeFrequency: "monthly" as const, priority: 0.6 })),
+    ...STATIC_ROUTES.map((route) => ({
+      url: absolute(route.path),
+      lastModified: now,
+      changeFrequency: route.changeFrequency,
+      priority: route.priority,
+    })),
+    ...SERVICES.map((service) => ({
+      url: absolute(`/services/${service.slug}`),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+    })),
+    ...SERVICES.map((service) => ({
+      url: absolute(`/request?service=${service.slug}`),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    })),
+    ...ARTICLES.map((article) => ({
+      url: absolute(`/articles/${article.slug}`),
+      lastModified: new Date(article.updatedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+    ...Array.from(new Set(FAQS.map((f) => f.category))).map((category) => ({
+      url: absolute(`/faq?category=${encodeURIComponent(category)}`),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
+    })),
   ];
 }
