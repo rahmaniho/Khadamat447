@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { FaqList } from "@/components/site/faq-list";
 import { CtaBand, PageHero, Section } from "@/components/site/section";
@@ -64,13 +65,13 @@ export default function FaqPage() {
                 اگر پاسخ پرسش‌تان در فهرست نبود، موضوع را از فرم «سایر درخواست‌ها» ارسال کنید؛ کارشناس دفتر در ساعات کاری
                 پاسخ می‌دهد و پاسخ از طریق کد پیگیری قابل مشاهده است.
               </p>
-              <a
+              <Link
                 href="/request?service=other"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-600 px-4 py-3 text-[0.82rem] font-black text-white transition hover:bg-brand-700"
               >
                 <Icon name="chat" size={17} />
                 ارسال پرسش به کارشناس
-              </a>
+              </Link>
             </Card>
 
             <Card className="space-y-3">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { CtaBand, PageHero, Section } from "@/components/site/section";
 import { Alert, Card, Metric, SectionHeading } from "@/components/ui/primitives";
@@ -194,13 +195,13 @@ export default function PrivacyPage() {
                 <Icon name="phone" size={17} />
                 <span className="numeric">{SITE.phones[0].display}</span>
               </a>
-              <a
+              <Link
                 href="/request?service=other"
                 className="inline-flex items-center gap-2 rounded-2xl border border-[var(--border-soft)] px-4 py-3 text-[0.82rem] font-black text-ink-700 transition hover:border-brand-300 hover:text-brand-700 dark:text-ink-200"
               >
                 <Icon name="send" size={17} />
                 ارسال درخواست
-              </a>
+              </Link>
             </div>
           </div>
         </div>

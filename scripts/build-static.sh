@@ -20,6 +20,9 @@ rm -rf "$ROOT/.next" "$ROOT/out"
 echo "→ ساخت خروجی استاتیک (STATIC_EXPORT=true)"
 STATIC_EXPORT=true npx next build
 
+echo "→ اصلاح مسیر دارایی‌ها برای basePath"
+python3 "$ROOT/scripts/fix-basepath.py" "$ROOT/out" "/Khadamat447"
+
 echo "→ افزودن فایل‌های لازم GitHub Pages"
 touch "$ROOT/out/.nojekyll"
 
