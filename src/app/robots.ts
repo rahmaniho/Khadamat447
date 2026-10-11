@@ -1,22 +1,19 @@
 import type { MetadataRoute } from "next";
-import { loadSite } from "@/lib/site";
-import { IS_STATIC } from "@/lib/static-data";
+import { absolute, siteUrl } from "@/lib/seo";
 
 export const dynamic = "force-static";
 
+/** نقشه راهنمای ربات‌ها: فرم‌ها و پیشخوان مدیریت از فهرست خارج است */
 export default function robots(): MetadataRoute.Robots {
-  const baseFromEnv = process.env.NEXT_PUBLIC_SITE_URL || "";
-  const base = IS_STATIC
-    ? (baseFromEnv || "https://rahmaniho.github.io/Khadamat447")
-    : baseFromEnv;
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/admin/", "/api/", "/track", "/search", "/request/success"],
+        disallow: ["/admin", "/admin/", "/track", "/search", "/my-requests", "/request/success"],
       },
     ],
-    ...(base ? { sitemap: `${base}/sitemap.xml`, host: base } : {}),
+    sitemap: absolute("/sitemap.xml"),
+    host: siteUrl(),
   };
 }

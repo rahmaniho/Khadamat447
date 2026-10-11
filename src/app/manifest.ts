@@ -1,22 +1,32 @@
 import type { MetadataRoute } from "next";
+import { SITE } from "@/lib/content/site";
 
 export const dynamic = "force-static";
 
-/** مانیفست وب‌اپ: نام و نماد برند برای افزودن سایت به صفحه اصلی گوشی */
+/** مانیفست وب (PWA سبک): افزودن سایت به صفحه اصلی گوشی */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "دفتر خدمات سلامت ۴۷۷ قزوین",
-    short_name: "خدمات سلامت ۴۷۷",
-    description: "ثبت آنلاین درخواست و پیگیری خدمات سلامت و بهداشت در قزوین.",
-    lang: "fa",
+    name: `${SITE.name} — قزوین`,
+    short_name: SITE.shortName,
+    description: SITE.description,
+    lang: "fa-IR",
     dir: "rtl",
     start_url: "/",
+    scope: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#0f766e",
+    orientation: "portrait",
+    background_color: "#f6f9f9",
+    theme_color: "#1e7a71",
+    categories: ["health", "business", "government"],
     icons: [
       { src: "/brand/logo-mark.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/apple-icon", sizes: "180x180", type: "image/png" },
+      { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcuts: [
+      { name: "ثبت درخواست", short_name: "ثبت درخواست", url: "/request" },
+      { name: "پیگیری درخواست", short_name: "پیگیری", url: "/track" },
+      { name: "خدمات", short_name: "خدمات", url: "/services" },
     ],
   };
 }

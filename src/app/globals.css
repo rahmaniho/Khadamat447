@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* =====================================================================
+   دفتر خدمات سلامت ۴۷۷ — سامانه طراحی
+   ---------------------------------------------------------------------
+   • پالت رنگی اختصاصی برند (سبز-فیروزه‌ای سلامت + طلایی اعتماد)
+   • حالت روشن و تاریک، مبتنی بر کلاس .dark روی <html>
+   • توکن‌های فاصله، سایه، انیمیشن و تایپوگرافی فارسی
+   ===================================================================== */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
 @font-face {
   font-family: "Vazirmatn";
   src: url("/fonts/Vazirmatn-var.woff2") format("woff2");
@@ -9,100 +19,473 @@
 }
 
 @theme {
-  --font-sans: "Vazirmatn", "Tahoma", system-ui, sans-serif;
-  --color-brand-50: #ecfdf8;
-  --color-brand-100: #d1f7ec;
-  --color-brand-200: #a5ecd9;
-  --color-brand-500: #14a38b;
-  --color-brand-600: #0f8a77;
-  --color-brand-700: #0f766e;
-  --color-brand-800: #115e59;
-  --color-brand-900: #134e4a;
-  --color-ink: #0f172a;
+  --font-sans: "Vazirmatn", "Tahoma", system-ui, -apple-system, sans-serif;
+
+  /* ---------- رنگ اصلی: فیروزه‌ای سلامت ---------- */
+  --color-brand-50: #eff9f7;
+  --color-brand-100: #d5f2ec;
+  --color-brand-200: #ace4da;
+  --color-brand-300: #7bd0c2;
+  --color-brand-400: #48b3a5;
+  --color-brand-500: #2a978b;
+  --color-brand-600: #1e7a71;
+  --color-brand-700: #1b625c;
+  --color-brand-800: #194f4b;
+  --color-brand-900: #17413e;
+  --color-brand-950: #072624;
+
+  /* ---------- رنگ مکمل: طلایی اعتماد ---------- */
+  --color-gold-50: #fdf9ed;
+  --color-gold-100: #f9efcd;
+  --color-gold-200: #f2dc97;
+  --color-gold-300: #eac25c;
+  --color-gold-400: #e3ab33;
+  --color-gold-500: #d4901c;
+  --color-gold-600: #b56d15;
+  --color-gold-700: #914e15;
+  --color-gold-800: #783f18;
+  --color-gold-900: #663517;
+  --color-gold-950: #3b1a08;
+
+  /* ---------- رنگ متن و سطوح ---------- */
+  --color-ink-50: #f5f8f8;
+  --color-ink-100: #e8eeee;
+  --color-ink-200: #d3dede;
+  --color-ink-300: #aebfc0;
+  --color-ink-400: #829a9c;
+  --color-ink-500: #637d80;
+  --color-ink-600: #4d6468;
+  --color-ink-700: #3f5255;
+  --color-ink-800: #364548;
+  --color-ink-900: #2b3739;
+  --color-ink-950: #101a1c;
+
+  /* ---------- رنگ‌های معنایی ---------- */
+  --color-success-50: #ecfdf5;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+  --color-warn-50: #fffbeb;
+  --color-warn-500: #f59e0b;
+  --color-warn-600: #d97706;
+  --color-warn-700: #b45309;
+  --color-danger-50: #fff1f2;
+  --color-danger-500: #f43f5e;
+  --color-danger-600: #e11d48;
+  --color-danger-700: #be123c;
+  --color-info-50: #eff6ff;
+  --color-info-500: #3b82f6;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+
+  /* ---------- سایه‌ها ---------- */
+  --shadow-soft: 0 1px 2px rgb(16 26 28 / 0.04), 0 8px 24px -12px rgb(16 26 28 / 0.14);
+  --shadow-lift: 0 2px 4px rgb(16 26 28 / 0.05), 0 18px 40px -18px rgb(16 26 28 / 0.28);
+  --shadow-glow: 0 18px 48px -20px rgb(42 151 139 / 0.55);
+  --shadow-inset: inset 0 1px 0 0 rgb(255 255 255 / 0.6);
+
+  /* ---------- شعاع گوشه‌ها ---------- */
+  --radius-4xl: 2rem;
+  --radius-5xl: 2.75rem;
+
+  /* ---------- انیمیشن‌ها ---------- */
+  --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.6s ease-out both;
+  --animate-scale-in: scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-float-slow: float 11s ease-in-out infinite;
+  --animate-marquee: marquee 38s linear infinite;
+  --animate-shimmer: shimmer 2.2s linear infinite;
+  --animate-pulse-ring: pulse-ring 2.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-gradient: gradient-pan 14s ease infinite;
+  --animate-tick: tick 1.6s ease-in-out infinite;
+  --animate-spin-slow: spin 22s linear infinite;
 }
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+@keyframes gradient-pan {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+@keyframes tick {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+/* ============================ پایه ============================ */
 
 :root {
   color-scheme: light;
+  --page-bg: #f6f9f9;
+  --surface: #ffffff;
+  --surface-muted: #f1f6f5;
+  --border-soft: rgb(16 26 28 / 0.08);
+  --header-bg: rgb(255 255 255 / 0.82);
+}
+
+.dark {
+  color-scheme: dark;
+  --page-bg: #071110;
+  --surface: #0d1c1b;
+  --surface-muted: #102423;
+  --border-soft: rgb(255 255 255 / 0.09);
+  --header-bg: rgb(9 22 21 / 0.82);
+}
+
+* {
+  border-color: var(--border-soft);
 }
 
 html {
   direction: rtl;
   -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
 }
 
 body {
   font-family: var(--font-sans);
-  background: #f7faf9;
-  color: var(--color-ink);
-  line-height: 1.9;
-  font-feature-settings: "ss01" 0;
+  background-color: var(--page-bg);
+  color: var(--color-ink-900);
+  line-height: 1.85;
+  font-feature-settings: "ss01" 1, "ss02" 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
+.dark body {
+  color: var(--color-ink-100);
+}
+
+::selection {
+  background: var(--color-brand-200);
+  color: var(--color-brand-950);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 0.35rem;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+
+/* نوار پیمایش نرم */
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-brand-500) 45%, transparent);
+    border: 3px solid var(--page-bg);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-brand-600);
+  }
+}
+
+/* ============================ ابزارها ============================ */
+
+@utility surface-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-soft);
+}
+
+@utility glass {
+  background: var(--header-bg);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+@utility text-gradient {
+  background-image: linear-gradient(100deg, var(--color-brand-600), var(--color-brand-400) 45%, var(--color-gold-400));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: var(--animate-gradient);
+}
+
+@utility grid-pattern {
+  background-image:
+    linear-gradient(to left, color-mix(in oklab, var(--color-brand-500) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-brand-500) 12%, transparent) 1px, transparent 1px);
+  background-size: 46px 46px;
+}
+
+@utility dot-pattern {
+  background-image: radial-gradient(color-mix(in oklab, var(--color-brand-500) 26%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "ss02" 1;
+}
+
+@utility mask-fade-x {
+  mask-image: linear-gradient(to left, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to left, transparent, black 8%, black 92%, transparent);
+}
+
+@utility lift {
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+@utility skeleton {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-ink-300) 25%, transparent) 25%,
+    color-mix(in oklab, var(--color-ink-300) 12%, transparent) 37%,
+    color-mix(in oklab, var(--color-ink-300) 25%, transparent) 63%
+  );
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+/* ============================ متن غنی ============================ */
+
+.prose-fa {
+  font-size: 1.0125rem;
+  line-height: 2.05;
+  color: var(--color-ink-700);
+}
+.dark .prose-fa {
+  color: var(--color-ink-200);
+}
+.prose-fa > * + * {
+  margin-top: 0.95rem;
+}
 .prose-fa h2 {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  margin: 1.6rem 0 0.6rem;
+  margin-top: 2.1rem;
+  padding-inline-start: 0.85rem;
+  border-inline-start: 4px solid var(--color-brand-500);
   color: var(--color-brand-800);
+  line-height: 1.6;
 }
-.prose-fa h3,
-.prose-fa h4 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin: 1.2rem 0 0.4rem;
+.dark .prose-fa h2 {
+  color: var(--color-brand-200);
 }
-.prose-fa p {
-  margin: 0.7rem 0;
+.prose-fa h3 {
+  font-size: 1.13rem;
+  font-weight: 800;
+  margin-top: 1.6rem;
+  color: var(--color-brand-700);
+}
+.dark .prose-fa h3 {
+  color: var(--color-brand-300);
 }
 .prose-fa ul {
-  list-style: disc;
-  padding-inline-start: 1.4rem;
-  margin: 0.6rem 0;
+  list-style: none;
+  padding-inline-start: 0.25rem;
 }
 .prose-fa ol {
   list-style: decimal;
-  padding-inline-start: 1.4rem;
-  margin: 0.6rem 0;
+  padding-inline-start: 1.5rem;
 }
-.prose-fa li {
-  margin: 0.3rem 0;
+.prose-fa ul > li {
+  position: relative;
+  padding-inline-start: 1.6rem;
+  margin: 0.45rem 0;
+}
+.prose-fa ul > li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.35rem;
+  top: 0.85rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--color-brand-400), var(--color-gold-400));
+}
+.prose-fa ol > li {
+  margin: 0.45rem 0;
+  padding-inline-start: 0.35rem;
+}
+.prose-fa ol > li::marker {
+  color: var(--color-brand-600);
+  font-weight: 700;
 }
 .prose-fa blockquote {
-  border-inline-start: 4px solid var(--color-brand-500);
-  background: var(--color-brand-50);
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  margin: 1rem 0;
-  color: #134e4a;
+  border-inline-start: 4px solid var(--color-gold-400);
+  background: color-mix(in oklab, var(--color-gold-100) 55%, transparent);
+  padding: 0.9rem 1.1rem;
+  border-radius: 1rem;
+  margin: 1.2rem 0;
+  color: var(--color-brand-900);
+  font-weight: 500;
+}
+.dark .prose-fa blockquote {
+  background: color-mix(in oklab, var(--color-gold-500) 14%, transparent);
+  color: var(--color-gold-100);
 }
 .prose-fa a {
   color: var(--color-brand-700);
   text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1.5px;
+}
+.dark .prose-fa a {
+  color: var(--color-brand-300);
 }
 .prose-fa code {
-  background: #f1f5f9;
-  padding: 0.1rem 0.35rem;
-  border-radius: 0.3rem;
-  direction: ltr;
-  display: inline-block;
-}
-
-.ltr-num {
-  direction: ltr;
-  unicode-bidi: isolate;
-  display: inline-block;
-}
-
-:focus-visible {
-  outline: 3px solid var(--color-brand-500);
-  outline-offset: 2px;
+  background: var(--surface-muted);
+  padding: 0.15rem 0.4rem;
   border-radius: 0.5rem;
+  font-size: 0.9em;
 }
+.prose-fa strong {
+  font-weight: 800;
+  color: var(--color-ink-900);
+}
+.dark .prose-fa strong {
+  color: white;
+}
+.prose-fa hr {
+  border-top: 1px dashed var(--border-soft);
+  margin: 2rem 0;
+}
+.prose-fa table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.prose-fa th,
+.prose-fa td {
+  border: 1px solid var(--border-soft);
+  padding: 0.6rem 0.8rem;
+  text-align: start;
+}
+.prose-fa th {
+  background: var(--surface-muted);
+  font-weight: 700;
+}
+
+/* ============================ دسترس‌پذیری ============================ */
 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
   }
 }
