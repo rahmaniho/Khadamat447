@@ -116,7 +116,8 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
             }}
             onKeyDown={onKeyDown}
             placeholder="جست‌وجو در خدمات، مقالات، پرسش‌ها و راهنماها…"
-            className="h-16 flex-1 bg-transparent text-[0.95rem] font-medium text-ink-900 outline-none placeholder:text-ink-400 dark:text-white"
+            // text-base در موبایل: از زوم خودکار iOS هنگام فوکوس ورودی جلوگیری می‌کند
+            className="h-16 flex-1 bg-transparent text-base font-medium text-ink-900 outline-none placeholder:text-ink-400 dark:text-white"
             aria-label="عبارت جست‌وجو"
           />
           {query && (

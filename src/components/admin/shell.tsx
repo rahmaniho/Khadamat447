@@ -119,8 +119,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {/* نوار کناری */}
         <aside
           className={cn(
-            "no-print fixed inset-y-0 end-0 z-50 w-72 overflow-y-auto border-s border-[var(--border-soft)] bg-[var(--surface)] transition-transform duration-300 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
-            sidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0",
+            /*
+             * کشوی ناوبری در RTL به لبه چسبیده به «end» (لبه چپ فیزیکی) می‌نشیند.
+             * برای پنهان‌سازی از `transform` فیزیکی استفاده می‌کنیم نه `translate-x`
+             * تیلویند — ویژگی CSS translate در برخی مرورگرها جهت‌آگاه (direction-aware)
+             * است و در RTL جهت جابه‌جایی را وارون می‌کند؛ `transform: translateX()`
+             * در همه مرورگرها فیزیکی و قطعی است (منفی = به سمت چپ = بیرون از صفحه).
+             */
+            "no-print fixed inset-y-0 end-0 z-50 w-72 overflow-y-auto border-s border-[var(--border-soft)] bg-[var(--surface)] transition-transform duration-300 lg:sticky lg:top-0 lg:h-dvh lg:[transform:none]",
+            sidebarOpen ? "[transform:none]" : "[transform:translateX(-100%)] lg:[transform:none]",
           )}
         >
           <div className="flex items-center justify-between border-b border-[var(--border-soft)] p-4">

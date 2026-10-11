@@ -39,6 +39,9 @@ import { PERMISSIONS } from "../src/lib/store/store";
 import { STATUS_META, STATUS_ORDER } from "../src/lib/store/types";
 import { STATIC_BASE_PATH, activeBasePath, isStaticExport } from "../src/lib/basepath";
 import { THEME_INIT_SCRIPT, THEME_STORAGE_KEY } from "../src/lib/theme";
+import { buildLlmsText } from "../src/lib/content/llms";
+import { itemListJsonLd, organizationJsonLd, websiteJsonLd } from "../src/lib/seo";
+import robotsDefault, { AI_CRAWLERS, disallowedPaths } from "../src/app/robots";
 
 /* ------------------------------ اعداد و متن ------------------------------ */
 
@@ -258,4 +261,96 @@ test("اسکریپت تم حالت ذخیره‌شده را بر تنظیم سی
   // مقدار نامعتبر در حافظه نباید خطا بدهد و باید به تنظیم سیستم برگردد
   assert.equal(run("bogus", true), true);
   assert.equal(run("bogus", false), false);
+});
+
+/* ------------------------------ سئو و جئو (GEO) ------------------------------ */
+
+test("llms.txt با منبع یکتای محتوا ساخته می‌شود و ساختار استاندارد دارد", () => {
+  const text = buildLlmsText();
+  assert.ok(text.startsWith(`# ${SITE.name}`), "باید با عنوان سطح یک شروع شود");
+  assert.ok(text.includes(">"), "باید خلاصه نقل‌قولی داشته باشد");
+  // اطلاعات تماس واقعی دفتر
+  assert.ok(text.includes(SITE.email), "ایمیل دفتر در llms.txt نیست");
+  assert.ok(
+    text.includes(`+98${SITE.phones[0].value.replace(/^0/, "")}`),
+    "شماره تماس بین‌المللی در llms.txt نیست",
+  );
+  assert.ok(text.includes(SITE.addressFull), "نشانی در llms.txt نیست");
+  assert.ok(text.includes(`${SITE.lat}, ${SITE.lng}`), "مختصات جغرافیایی در llms.txt نیست");
+  // همه خدمات با پیوند مطلق
+  for (const service of SERVICES) {
+    assert.ok(text.includes(service.title), `خدمت ${service.slug} در llms.txt نیست`);
+    assert.ok(text.includes(`/services/${service.slug}`), `پیوند خدمت ${service.slug} نیست`);
+  }
+  // همه مقاله‌ها
+  for (const article of ARTICLES) {
+    assert.ok(text.includes(`/articles/${article.slug}`), `پیوند مقاله ${article.slug} نیست`);
+  }
+  // خروجی Markdown خالص است، نه HTML
+  assert.ok(!/<[a-z]/i.test(text), "llms.txt نباید برچسب HTML داشته باشد");
+  // همه پیوندها مطلق هستند تا موتورهای مولد بتوانند آن‌ها را دنبال کنند
+  for (const match of text.matchAll(/\]\(([^)]+)\)/g)) {
+    assert.ok(/^https?:\/\//.test(match[1]), `پیوند نسبی در llms.txt: ${match[1]}`);
+  }
+});
+
+test("داده ساختاریافته سازمان با فیلدهای محلی و GEO کامل است", () => {
+  const org = organizationJsonLd();
+  assert.equal(org.geo.latitude, SITE.lat);
+  assert.equal(org.geo.longitude, SITE.lng);
+  assert.equal(org.hasMap, SITE.mapProfileUrl);
+  assert.ok(org.sameAs.length >= SITE.social.length, "sameAs باید شبکه‌های اجتماعی را پوشش دهد");
+  // ساعات کاری ماشین‌خوان
+  const specs = org.openingHoursSpecification as Array<{ dayOfWeek: string[]; opens: string; closes: string }>;
+  assert.equal(specs.length, SITE.hoursSpecification.length);
+  const allDays = specs.flatMap((s) => s.dayOfWeek);
+  for (const day of SITE.hoursSpecification.flatMap((s) => s.days)) {
+    assert.ok(allDays.includes(`https://schema.org/${day}`), `روز ${day} در ساعات کاری نیست`);
+  }
+  // کاتالوگ خدمات
+  const offers = (org.hasOfferCatalog as { itemListElement: unknown[] }).itemListElement;
+  assert.equal(offers.length, SERVICES.length, "کاتالوگ باید همه خدمات را داشته باشد");
+  // JSON معتبر و بدون کاراکتر خطرناک برای <script>
+  const json = JSON.stringify(org);
+  assert.doesNotThrow(() => JSON.parse(json));
+  assert.ok(!json.includes("<"), "JSON-LD نباید «<» خام داشته باشد");
+});
+
+test("وب‌سایت و ItemList ساختاریافته معتبر است", () => {
+  const site = websiteJsonLd();
+  assert.ok(site.potentialAction, "SearchAction برای جست‌وجوی سایت لازم است");
+  const list = itemListJsonLd({
+    name: "فهرست آزمایشی",
+    path: "/services",
+    items: [
+      { name: "الف", href: "/services/a", description: "توضیح الف" },
+      { name: "ب", href: "/services/b" },
+    ],
+  });
+  assert.equal(list.numberOfItems, 2);
+  const items = list.itemListElement as Array<{ position: number; url: string; description?: string }>;
+  assert.deepEqual(items.map((i) => i.position), [1, 2], "position باید از ۱ شروع شود");
+  assert.ok(items.every((i) => /^https?:\/\//.test(i.url)), "پیوندها باید مطلق باشند");
+  assert.equal(items[0].description, "توضیح الف");
+  assert.equal(items[1].description, undefined);
+});
+
+test("robots.txt خزنده‌های هوش مصنوعی را با همان حریم خصوصی پوشش می‌دهد", () => {
+  const config = robotsDefault();
+  assert.ok(Array.isArray(config.rules) && config.rules.length === 2);
+  const aiRule = config.rules[1];
+  assert.deepEqual(aiRule.userAgent, AI_CRAWLERS);
+  for (const bot of ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"]) {
+    assert.ok(AI_CRAWLERS.includes(bot), `${bot} در فهرست خزنده‌های مجاز نیست`);
+  }
+  // قاعده عمومی و قاعده هوش مصنوعی باید Disallow یکسان داشته باشند
+  assert.deepEqual(aiRule.disallow, config.rules[0].disallow);
+
+  // در حالت استاتیک، مسیرهای مسدود پیشوند basePath می‌گیرند
+  const prefixed = disallowedPaths(STATIC_BASE_PATH);
+  assert.ok(prefixed.includes(`${STATIC_BASE_PATH}/admin`));
+  assert.ok(prefixed.every((p) => p.startsWith(STATIC_BASE_PATH)));
+  // در حالت عادی بدون پیشوند
+  const plain = disallowedPaths("");
+  assert.ok(plain.includes("/admin") && plain.includes("/track"));
 });

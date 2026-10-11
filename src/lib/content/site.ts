@@ -34,9 +34,21 @@ export const SITE = {
   ],
   hoursSummary: "شنبه تا چهارشنبه ۸ تا ۱۶ — پنج‌شنبه ۸ تا ۱۲",
   social: [
-    { label: "اینستاگرام", url: "https://instagram.com", icon: "instagram" as const, handle: "@khadamat447" },
-    { label: "تلگرام", url: "https://t.me", icon: "telegram" as const, handle: "@khadamat447" },
+    { label: "اینستاگرام", url: "https://www.instagram.com/khadamat447", icon: "instagram" as const, handle: "@khadamat447" },
+    { label: "تلگرام", url: "https://t.me/khadamat447", icon: "telegram" as const, handle: "@khadamat447" },
     { label: "واتس‌اپ", url: "https://wa.me/989398520150", icon: "whatsapp" as const, handle: "۰۹۳۹۸۵۲۰۱۵۰" },
+  ],
+  /**
+   * ساعات کاری ماشین‌خوان (schema.org) — همان اطلاعات hours اما با
+   * روزهای میلادی و زمان ۲۴ساعته برای داده ساختاریافته OpeningHoursSpecification.
+   */
+  hoursSpecification: [
+    {
+      days: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday"],
+      opens: "08:00",
+      closes: "16:00",
+    },
+    { days: ["Thursday"], opens: "08:00", closes: "12:00" },
   ],
   mapUrl: "https://www.google.com/maps?q=36.2678594,50.0135519",
   mapEmbedUrl:

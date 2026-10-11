@@ -215,6 +215,11 @@ html {
   scroll-padding-top: 6rem;
 }
 
+/* لمس پاک‌تر در موبایل: بدون هایلایت خاکستری پیش‌فرض هنگام تپ */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--page-bg);
@@ -307,6 +312,16 @@ h4 {
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* بزرگ‌سازی ناحیه لمس بدون تغییر چیدمان — برای دکمه‌های کوچک در موبایل */
+@utility hit-expand {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -10px;
   }
 }
 
@@ -463,6 +478,22 @@ h4 {
 }
 
 /* ============================ دسترس‌پذیری ============================ */
+
+/*
+ * جلوگیری از زوم خودکار iOS در موبایل
+ * ---------------------------------------------------------------
+ * iOS Safari هنگام فوکوس روی ورودی‌هایی با فونت کوچک‌تر از ۱۶px کل
+ * صفحه را بزرگ می‌کند و چیدمان از صفحه موبایل «خارج» می‌شود. این قاعده
+ * فقط در عرض موبایل و فقط برای کنترل‌های فرم اعمال می‌شود تا همه
+ * ورودی‌ها (از جمله selectهای فشرده پیشخوان) بدون زوم ناخواسته باشند.
+ */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,

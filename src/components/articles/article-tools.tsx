@@ -21,18 +21,17 @@ export function ArticleToc({ body }: { body: string }) {
 
   useEffect(() => {
     if (headings.length === 0) return;
+    /* لنگرهای فهرست مطالب با id مستقیم پیدا می‌شوند — نه با شمارش همه
+       h2های صفحه (که با h2های بخش‌های دیگر مانند «خدمات مرتبط» جابه‌جا می‌شد) */
     const sections = headings
-      .map((heading) => {
-        const nodes = document.querySelectorAll("h2");
-        return nodes[headings.indexOf(heading)];
-      })
-      .filter(Boolean) as HTMLElement[];
+      .map((heading) => document.getElementById(heading.id))
+      .filter((node): node is HTMLElement => Boolean(node));
     if (sections.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveId(entry.target.textContent ?? "");
+          if (entry.isIntersecting) setActiveId(entry.target.id);
         });
       },
       { rootMargin: "-120px 0px -60% 0px" },
@@ -56,7 +55,7 @@ export function ArticleToc({ body }: { body: string }) {
               href={`#${heading.id}`}
               className={cn(
                 "flex items-start gap-2 rounded-xl px-2.5 py-1.5 text-[0.74rem] font-bold leading-6 transition",
-                activeId.includes(heading.title)
+                activeId === heading.id
                   ? "bg-brand-50 text-brand-800 dark:bg-brand-500/12 dark:text-brand-200"
                   : "text-ink-600 hover:bg-[var(--surface-muted)] hover:text-brand-700 dark:text-ink-300",
               )}
@@ -74,8 +73,15 @@ export function ArticleToc({ body }: { body: string }) {
 /** اشتراک‌گذاری مقاله (کپی نشانی + شبکه‌های اجتماعی) */
 export function ShareButtons({ title, slug }: { title: string; slug: string }) {
   const [copied, setCopied] = useState(false);
+  /* نشانی کامل صفحه از خود مرورگر خوانده می‌شود تا در استقرار زیر basePath
+     (خروجی استاتیک GitHub Pages) پیوند اشتباه به اشتراک گذاشته نشود.
+     مقدار اولیه همان نشانی نسبی خروجی سرور است تا هیدراسیون بدون
+     اختلاف انجام شود. */
+  const [url, setUrl] = useState(`/articles/${slug}`);
 
-  const url = typeof window === "undefined" ? `/articles/${slug}` : `${window.location.origin}/articles/${slug}`;
+  useEffect(() => {
+    setUrl(window.location.href.split("#")[0]);
+  }, []);
 
   const copy = async () => {
     try {

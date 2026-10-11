@@ -62,6 +62,10 @@ export function Markdown({ source, className }: { source: string; className?: st
   let paragraph: string[] = [];
   let quote: string[] = [];
   let key = 0;
+  /* شمارنده سرتیترهای سطح ۲ — لنگرهای `h-1`، `h-2` و … که فهرست مطالب
+     مقاله (ArticleToc) به آن‌ها پیوند می‌دهد. بدون این idها پیوندهای
+     فهرست مطالب به هیچ مقصدی نمی‌رسیدند. */
+  let h2Count = 0;
 
   const flushParagraph = () => {
     if (!paragraph.length) return;
@@ -103,7 +107,15 @@ export function Markdown({ source, className }: { source: string; className?: st
       flushQuote();
       const level = heading[1].length;
       const Tag = (level === 2 ? "h2" : level === 3 ? "h3" : "h4") as "h2" | "h3" | "h4";
-      blocks.push(<Tag key={`h-${key++}`}>{renderInline(heading[2], `h-${key}`)}</Tag>);
+      const headingKey = `h-${key++}`;
+      /* فقط سرتیترهای سطح ۲ لنگر شماره‌دار می‌گیرند — دقیقاً هم‌ترتیب با
+         فهرست مطالب (h-1 برای نخستین `##` و به همین ترتیب) */
+      const anchorId = level === 2 ? `h-${++h2Count}` : undefined;
+      blocks.push(
+        <Tag key={headingKey} {...(anchorId ? { id: anchorId } : {})}>
+          {renderInline(heading[2], headingKey)}
+        </Tag>,
+      );
       continue;
     }
 
