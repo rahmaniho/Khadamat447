@@ -54,6 +54,13 @@ def fix_manifest(path: pathlib.Path, base: str) -> bool:
         if isinstance(src, str) and src.startswith("/") and not src.startswith(base):
             icon["src"] = base + src
             changed = True
+    # میان‌برهای PWA هم باید زیر basePath بمانند، وگرنه روی GitHub Pages
+    # به مسیر ریشه سایت (۴۰۴) می‌روند.
+    for shortcut in data.get("shortcuts", []) or []:
+        url = shortcut.get("url")
+        if isinstance(url, str) and url.startswith("/") and not url.startswith(base):
+            shortcut["url"] = base + url
+            changed = True
     if changed:
         path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     return changed

@@ -4,6 +4,7 @@
  */
 import assert from "node:assert/strict";
 import test from "node:test";
+import vm from "node:vm";
 
 import {
   en,
@@ -36,6 +37,8 @@ import {
 } from "../src/lib/store/seed";
 import { PERMISSIONS } from "../src/lib/store/store";
 import { STATUS_META, STATUS_ORDER } from "../src/lib/store/types";
+import { STATIC_BASE_PATH, activeBasePath, isStaticExport } from "../src/lib/basepath";
+import { THEME_INIT_SCRIPT, THEME_STORAGE_KEY } from "../src/lib/theme";
 
 /* ------------------------------ اعداد و متن ------------------------------ */
 
@@ -201,4 +204,58 @@ test("همه خدمات فعال حداقل یک مقدار نمایشی دار�
     assert.ok(service.highlights.length >= 3, `خدمت ${service.slug} نکته کلیدی ندارد`);
     assert.ok(service.documentsCount > 0 || /other/.test(service.slug), `فهرست مدارک ${service.slug} خالی است`);
   }
+});
+
+/* ------------------------------- basePath -------------------------------- */
+
+test("basePath فقط در حالت خروجی استاتیک فعال می‌شود", () => {
+  const previous = process.env.STATIC_EXPORT;
+  try {
+    delete process.env.STATIC_EXPORT;
+    assert.equal(activeBasePath(), "");
+    assert.equal(isStaticExport(), false);
+
+    process.env.STATIC_EXPORT = "false";
+    assert.equal(activeBasePath(), "");
+
+    process.env.STATIC_EXPORT = "true";
+    assert.equal(activeBasePath(), STATIC_BASE_PATH);
+    assert.equal(isStaticExport(), true);
+    assert.ok(STATIC_BASE_PATH.startsWith("/"), "مسیر پایه باید مطلق باشد");
+  } finally {
+    if (previous === undefined) delete process.env.STATIC_EXPORT;
+    else process.env.STATIC_EXPORT = previous;
+  }
+});
+
+/* ---------------------------------- تم ----------------------------------- */
+
+test("اسکریپت ضد‌پرش تم معتبر و هم‌خوان با کلید ذخیره‌سازی است", () => {
+  // باید پیش از رنگ‌آمیزی اجرا شود؛ پس نحو آن باید بی‌نقص باشد
+  assert.doesNotThrow(() => new vm.Script(THEME_INIT_SCRIPT));
+  assert.ok(THEME_INIT_SCRIPT.includes(THEME_STORAGE_KEY), "کلید ذخیره‌سازی تم در اسکریپت نیست");
+  assert.ok(/classList\.toggle\("dark"/.test(THEME_INIT_SCRIPT), "کلاس dark اعمال نمی‌شود");
+});
+
+test("اسکریپت تم حالت ذخیره‌شده را بر تنظیم سیستم مقدم می‌داند", () => {
+  const run = (stored: string | null, prefersDark: boolean): boolean => {
+    const root = { classList: { toggle: (_c: string, on: boolean) => (applied = on) }, style: {} as Record<string, string> };
+    let applied = false;
+    const context = {
+      localStorage: { getItem: () => stored },
+      window: { matchMedia: () => ({ matches: prefersDark }) },
+      document: { documentElement: root },
+    };
+    vm.createContext(context);
+    new vm.Script(THEME_INIT_SCRIPT).runInContext(context);
+    return applied;
+  };
+
+  assert.equal(run("dark", false), true, "حالت تاریک ذخیره‌شده باید اعمال شود");
+  assert.equal(run("light", true), false, "حالت روشن ذخیره‌شده باید بر تنظیم سیستم مقدم باشد");
+  assert.equal(run(null, true), true, "بدون مقدار ذخیره‌شده، تنظیم سیستم حاکم است");
+  assert.equal(run(null, false), false);
+  // مقدار نامعتبر در حافظه نباید خطا بدهد و باید به تنظیم سیستم برگردد
+  assert.equal(run("bogus", true), true);
+  assert.equal(run("bogus", false), false);
 });

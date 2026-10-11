@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { baseMetadata, jsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import { SITE } from "@/lib/content/site";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 const vazirmatn = localFont({
   src: "../assets/fonts/Vazirmatn-var.woff2",
@@ -31,6 +32,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable} suppressHydrationWarning>
       <head>
+        {/*
+          اسکریپت مسدودکننده تم — پیش از نخستین رنگ‌آمیزی اجرا می‌شود تا
+          کاربران حالت تاریک «پرش سفید» نبینند. جزئیات در src/lib/theme.ts
+        */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <script
           type="application/ld+json"
           // داده ساختاریافته سازمان، وب‌سایت و اطلاعات تماس

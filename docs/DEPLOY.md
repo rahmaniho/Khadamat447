@@ -42,7 +42,23 @@ bash scripts/build-static.sh     # → out/ با basePath=/Khadamat447
 آدرس نهایی: `https://<user>.github.io/Khadamat447/`
 
 > نکته: در حالت استاتیک، `basePath` روی `/Khadamat447` تنظیم می‌شود. اگر روی دامنهٔ
-> اختصاصی منتشر می‌کنید، `basePath` را در `next.config.ts` خالی کنید.
+> اختصاصی منتشر می‌کنید، مقدار `STATIC_BASE_PATH` را در `src/lib/basepath.ts`
+> خالی کنید (یا خروجی را روی ریشهٔ دامنه منتشر کنید و `STATIC_EXPORT` را خاموش کنید).
+> `next.config.ts`، `src/app/robots.ts` و اسکریپت `fix-basepath.py` همه از همین
+> ماژول می‌خوانند تا واگرایی پیش نیاید.
+
+### چه چیزهایی با basePath پیشوند می‌گیرند؟
+
+`next build` خودش مسیرهای صفحه‌ها و دارایی‌های `/_next/*` را اصلاح می‌کند، اما
+چند مورد را نمی‌پوشاند؛ `scripts/fix-basepath.py` (که در `build-static.sh` صدا
+زده می‌شود) این‌ها را جبران می‌کند:
+
+| مورد | چرا لازم است |
+|---|---|
+| `/images/` · `/brand/` · `/fonts/` در HTML/CSS | مراجع مطلق درون فایل‌های ایستا |
+| `/icon.png` · `/apple-icon.png` · `manifest.webmanifest` | لینک‌های `<link rel="icon">` |
+| `start_url` · `scope` · `icons` · **`shortcuts`** در manifest | بدون پیشوند، میان‌برهای PWA روی Pages به ۴۰۴ می‌خورند |
+| قواعد `Disallow` در `robots.txt` | مسیرهایی مانند `/Khadamat447/admin` باید دقیقاً مسدود شوند |
 
 پیش‌نیاز یک‌باره در تنظیمات مخزن: **Settings → Pages → Source: GitHub Actions**.
 
