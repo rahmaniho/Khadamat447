@@ -5,6 +5,7 @@ import { FOOTER_LINKS, SITE } from "@/lib/content/site";
 import { activeBasePath } from "@/lib/basepath";
 import { toFaDigits } from "@/lib/digits";
 import { NewsletterForm } from "@/components/layout/newsletter-form";
+import { KarenSoftCredit } from "@/components/layout/karensoft-credit";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -102,11 +103,12 @@ export function SiteFooter() {
           <NewsletterForm />
         </div>
 
-        <div className="mt-10 flex flex-col gap-4 border-t border-[var(--border-soft)] pt-6 text-[0.74rem] font-bold text-ink-500 dark:text-ink-400 md:flex-row md:items-center md:justify-between">
-          <p className="leading-7">
+        <div className="mt-10 flex flex-col items-center gap-4 border-t border-[var(--border-soft)] pt-6 text-[0.74rem] font-bold text-ink-500 dark:text-ink-400 lg:flex-row lg:items-center lg:justify-between">
+          <p className="text-center leading-7 lg:text-start">
             © {toFaDigits(year)} تمامی حقوق برای {SITE.name} محفوظ است. ثبت درخواست آنلاین به معنی تأیید نهایی یا صدور مجوز نیست.
           </p>
-          <div className="flex flex-wrap items-center gap-4">
+          <KarenSoftCredit basePath={activeBasePath()} />
+          <div className="flex flex-wrap items-center justify-center gap-4 lg:justify-end">
             <Link href="/privacy" className="transition hover:text-brand-700 dark:hover:text-brand-300">
               حریم خصوصی
             </Link>

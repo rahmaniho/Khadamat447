@@ -19,3 +19,17 @@ export function isStaticExport(): boolean {
 export function activeBasePath(): string {
   return isStaticExport() ? STATIC_BASE_PATH : "";
 }
+
+/**
+ * پیشوندگذاری نشانی دارایی‌های عمومی با basePath.
+ * اگر مسیر از پیش با basePath آغاز شده باشد، دوباره پیشوند اضافه نمی‌شود
+ * تا با اسکریپت پس‌پردازش خروجی استاتیک (`scripts/fix-basepath.py`) تداخل نکند.
+ */
+export function withBasePath(path: string, base: string = activeBasePath()): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  if (base && (normalized === base || normalized.startsWith(`${base}/`))) {
+    return normalized;
+  }
+  return `${base}${normalized}`;
+}
+
