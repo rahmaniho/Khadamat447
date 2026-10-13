@@ -54,6 +54,23 @@ export const SITE = {
   mapEmbedUrl:
     "https://www.openstreetmap.org/export/embed.html?bbox=49.9986%2C36.2607%2C50.0285%2C36.2750&layer=mapnik&marker=36.2678594%2C50.0135519",
   mapProfileUrl: "https://www.google.com/maps/search/?api=1&query=36.2678594,50.0135519",
+  footer: {
+    designedBy: "طراحی و توسعه:",
+    designedByEn: "Designed & Developed by",
+  },
+} as const;
+
+export const FOOTER_I18N = {
+  fa: {
+    footer: {
+      designedBy: "طراحی و توسعه:",
+    },
+  },
+  en: {
+    footer: {
+      designedBy: "Designed & Developed by",
+    },
+  },
 } as const;
 
 export type SocialIcon = (typeof SITE.social)[number]["icon"];

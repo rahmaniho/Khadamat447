@@ -27,7 +27,7 @@ import {
 } from "../src/lib/format";
 import { ARTICLES, FAQS, SERVICES, getArticle, getRelatedArticles, getService, searchFullText } from "../src/lib/content";
 import { SERVICES_SEED, FIELDS_SEED } from "../src/lib/content/catalog";
-import { SITE, SERVICE_UI, NAV } from "../src/lib/content/site";
+import { SITE, SERVICE_UI, NAV, FOOTER_I18N } from "../src/lib/content/site";
 import {
   DEMO_CREDENTIALS,
   buildSeed,
@@ -37,7 +37,7 @@ import {
 } from "../src/lib/store/seed";
 import { PERMISSIONS } from "../src/lib/store/store";
 import { STATUS_META, STATUS_ORDER } from "../src/lib/store/types";
-import { STATIC_BASE_PATH, activeBasePath, isStaticExport } from "../src/lib/basepath";
+import { STATIC_BASE_PATH, activeBasePath, isStaticExport, withBasePath } from "../src/lib/basepath";
 import { THEME_INIT_SCRIPT, THEME_STORAGE_KEY } from "../src/lib/theme";
 import { buildLlmsText } from "../src/lib/content/llms";
 import { itemListJsonLd, organizationJsonLd, websiteJsonLd } from "../src/lib/seo";
@@ -225,6 +225,11 @@ test("basePath فقط در حالت خروجی استاتیک فعال می‌ش
     assert.equal(activeBasePath(), STATIC_BASE_PATH);
     assert.equal(isStaticExport(), true);
     assert.ok(STATIC_BASE_PATH.startsWith("/"), "مسیر پایه باید مطلق باشد");
+    assert.equal(withBasePath("/images/karensoft/mark.png"), `${STATIC_BASE_PATH}/images/karensoft/mark.png`);
+    assert.equal(withBasePath(`${STATIC_BASE_PATH}/images/karensoft/mark.png`), `${STATIC_BASE_PATH}/images/karensoft/mark.png`);
+    assert.equal(withBasePath("images/karensoft/mark.png", ""), "/images/karensoft/mark.png");
+    assert.equal(FOOTER_I18N.fa.footer.designedBy, "طراحی و توسعه:");
+    assert.equal(FOOTER_I18N.en.footer.designedBy, "Designed & Developed by");
   } finally {
     if (previous === undefined) delete process.env.STATIC_EXPORT;
     else process.env.STATIC_EXPORT = previous;
